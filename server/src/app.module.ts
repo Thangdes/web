@@ -4,6 +4,7 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './modules/health/health.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { HealthModule } from './modules/health/health.module';
     DatabaseModule,
     HealthModule,
     UsersModule,
+    CalendarModule,
   ],
   controllers: [],
   providers: [],

@@ -7,6 +7,7 @@ import { setupSwagger } from './common/swagger/swagger.config';
 import helmet from 'helmet';
 import compression from 'compression';
 
+
 async function bootstrap() {
   const getLogLevels = (level: string): LogLevel[] => {
     const levels: Record<string, LogLevel[]> = {
@@ -58,14 +59,13 @@ async function bootstrap() {
     }),
   );
 
- 
- 
-  await app.listen(env.PORT);
   if (env.NODE_ENV !== 'production') {
     setupSwagger(app);
-    LoggerConfig.log(`📚 API Documentation: http://${env.API_HOST}:${env.PORT}/api/docs`);
+    LoggerConfig.log(`📚 API Documentation: http://${env.API_HOST}:${env.API_PORT}/docs`);
   }
-  LoggerConfig.log(`🚀 Server running on http://${env.API_HOST}:${env.PORT}/${env.API_PREFIX}`);
+
+  await app.listen(env.API_PORT);
+  LoggerConfig.log(`🚀 Server running on http://${env.API_HOST}:${env.API_PORT}/${env.API_PREFIX}`);
   LoggerConfig.log(`🌍 Environment: ${env.NODE_ENV}`);
   LoggerConfig.log(`📊 Database: ${env.DB_HOST}:${env.DB_PORT}/${env.DB_NAME}`);
 }
