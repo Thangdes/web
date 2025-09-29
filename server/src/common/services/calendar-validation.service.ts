@@ -1,9 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { MessageService } from '../message/message.service';
+import { CalendarSyncException } from 'src/modules/event/exceptions/event.exceptions';
 
 @Injectable()
 export class CalendarValidationService {
+    private readonly logger = new Logger(CalendarValidationService.name);
+
     constructor(
         private databaseService: DatabaseService,
         private messageService: MessageService
@@ -29,7 +32,7 @@ export class CalendarValidationService {
             
             // Check if connection is still valid (not expired)
             if (connection.expires_at && new Date(connection.expires_at) < new Date()) {
-                throw new Error(this.messageService.get('calendar.sync_failed'));
+                throw new CalendarSyncException(this.messageService.get('calendar.sync_failed'));
             }
 
             // TODO: Future implementation - Check for sync conflicts
@@ -41,7 +44,7 @@ export class CalendarValidationService {
             }
             // If calendar validation fails, we still allow event creation
             // This ensures the system works even without Google Calendar integration
-            console.warn(`Calendar validation warning for user ${userId}: ${error.message}`);
+            this.logger.warn(`Calendar validation warning for user ${userId}: ${error.message}`);
         }
     }
 
@@ -63,11 +66,11 @@ export class CalendarValidationService {
             
             if (syncResult.rows.length > 0) {
                 // Log potential conflicts but don't block event creation
-                console.warn(`Potential sync conflicts detected for user ${userId}`);
+                this.logger.warn(`Potential sync conflicts detected for user ${userId}`);
                 // Future: Implement conflict resolution logic
             }
         } catch (error) {
-            console.warn(`Sync log check failed for user ${userId}: ${error.message}`);
+            this.logger.warn(`Sync log check failed for user ${userId}: ${error.message}`);
         }
     }
 

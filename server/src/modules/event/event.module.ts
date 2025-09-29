@@ -9,4 +9,4 @@ import { EventRepository } from "./event.repository";
     providers: [EventService, EventRepository],
     exports: [],
 })
-export class CalendarModule {}
+export class EventModule {}
