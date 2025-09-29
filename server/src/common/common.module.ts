@@ -8,11 +8,17 @@ import { LoggingFilter } from './filters/logging.filter';
 import { RateLimitFilter } from './filters/rate-limit.filter';
 import { RequestIdInterceptor } from './interceptors/request-id.interceptor';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
+import { PaginationService } from './services/pagination.service';
+import { UserValidationService } from './services/user-validation.service';
+import { CalendarValidationService } from './services/calendar-validation.service';
 
 @Global()
 @Module({
   imports: [MessageModule],
   providers: [
+    PaginationService,
+    UserValidationService,
+    CalendarValidationService,
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,
@@ -42,6 +48,6 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
       inject: [MessageService],
     },
   ],
-  exports: [MessageModule],
+  exports: [MessageModule, PaginationService, UserValidationService, CalendarValidationService],
 })
 export class CommonModule {}

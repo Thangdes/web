@@ -1,5 +1,5 @@
 
-export interface CalendarEvent {
+export interface Event {
     id: string;
     user_id: string;
     title: string;
