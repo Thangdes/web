@@ -242,12 +242,47 @@ export abstract class BaseRepository<T extends BaseEntity> {
             throw new Error(this.messageService.get('error.internal_server_error'));
         }
     }
+
+    async search(
+        whereCondition: string,
+        whereParams: any[],
+        paginationOptions: Partial<PaginationOptions>,
+        options?: RepositoryOptions
+    ): Promise<PaginatedResult<T>> {
+        const validatedOptions = this.paginationService.validatePaginationOptions(paginationOptions);
+        const { page, limit } = validatedOptions;
+
+        const baseQuery = this.buildSelectQuery(options?.includeDeleted);
+        const allowedSortFields = this.getAllowedSortFields();
+
+        const { countQuery, dataQuery, countParams, dataParams } = this.paginationService.buildPaginatedQuery(
+            baseQuery,
+            validatedOptions,
+            allowedSortFields,
+            whereCondition,
+            whereParams
+        );
+
+        try {
+            const [countResult, dataResult] = await Promise.all([
+                this.databaseService.query(countQuery, countParams),
+                this.databaseService.query<T>(dataQuery, dataParams)
+            ]);
+
+            const total = parseInt(countResult.rows[0].count);
+            const items = dataResult.rows;
+
+            return this.paginationService.createPaginatedResult(items, page, limit, total);
+        } catch (error) {
+            this.logger.error(`Failed to search ${this.tableName}:`, error);
+            throw new Error(this.messageService.get('error.internal_server_error'));
+        }
+    }
 }
 
 
 @Injectable()
 export abstract class UserOwnedRepository<T extends UserOwnedEntity> extends BaseRepository<T> {
-
     async findByUserId(
         userId: string,
         paginationOptions: Partial<PaginationOptions>,

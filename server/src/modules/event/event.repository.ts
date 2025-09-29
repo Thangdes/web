@@ -60,4 +60,26 @@ export class EventRepository extends UserOwnedRepository<Event> {
             throw new EventCreationFailedException(this.messageService.get('error.internal_server_error'));
         }
     }
+
+    /**
+     * Search events by title or description for a specific user using base search method
+     */
+    async searchEvents(
+        userId: string, 
+        searchTerm: string, 
+        paginationOptions: Partial<PaginationOptions>
+    ): Promise<PaginatedResult<Event>> {
+        await this.userValidationService.validateUserExists(userId);
+        
+        const searchPattern = `%${searchTerm}%`;
+        const whereCondition = 'user_id = $1 AND (title ILIKE $2 OR description ILIKE $2)';
+        const whereParams = [userId, searchPattern];
+
+        try {
+            return await this.search(whereCondition, whereParams, paginationOptions);
+        } catch (error) {
+            this.logger.error('Failed to search events:', error);
+            throw new EventCreationFailedException(this.messageService.get('error.internal_server_error'));
+        }
+    }
 }
