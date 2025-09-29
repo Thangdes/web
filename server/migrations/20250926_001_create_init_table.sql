@@ -1,6 +1,10 @@
 -- UP Migration: Create initial database schema v1.0.0 26/9/2025
 -- ==============================================
 
+
+-- =====================
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- CUSTOM TYPES 
 -- =============
 CREATE TYPE event_status AS ENUM ('confirmed', 'cancelled', 'tentative');
@@ -14,7 +18,7 @@ CREATE TYPE notification_channel AS ENUM ('email', 'slack', 'zalo', 'push');
 
 -- Users table - stores user account information
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     username VARCHAR(100) UNIQUE NOT NULL,
     avatar VARCHAR(255) DEFAULT NULL,
@@ -29,8 +33,8 @@ CREATE TABLE users (
 
 -- User credentials table - stores OAuth tokens and credentials
 CREATE TABLE user_credentials (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL,
     provider provider_type DEFAULT 'google' NOT NULL,
     access_token VARCHAR(500),
     refresh_token VARCHAR(500),
@@ -42,8 +46,8 @@ CREATE TABLE user_credentials (
 
 -- Calendars table - stores calendar information from Google Calendar
 CREATE TABLE calendars (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL,
     google_calendar_id VARCHAR(255) NOT NULL,
     name VARCHAR(255),
     description TEXT,
@@ -55,8 +59,8 @@ CREATE TABLE calendars (
 
 -- Events table - stores calendar events
 CREATE TABLE events (
-    id SERIAL PRIMARY KEY,
-    calendar_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    calendar_id UUID NOT NULL,
     google_event_id VARCHAR(255) NOT NULL,
     title VARCHAR(500),
     description TEXT,
@@ -76,8 +80,8 @@ CREATE TABLE events (
 
 -- Sync log table - tracks synchronization operations
 CREATE TABLE sync_logs (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL,
     sync_type sync_status NOT NULL,
     status sync_log_status NOT NULL,
     error_message TEXT,
@@ -88,8 +92,8 @@ CREATE TABLE sync_logs (
 
 -- Availabilities table - stores user availability schedules
 CREATE TABLE availabilities (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL,
     day_of_week INTEGER NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6), -- 0=Sunday, 6=Saturday
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
@@ -100,10 +104,10 @@ CREATE TABLE availabilities (
 
 -- Bookings table - stores meeting bookings
 CREATE TABLE bookings (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL, -- user being booked
-    event_id INTEGER NOT NULL,
-    booked_by INTEGER NOT NULL, -- user who made the booking
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL, -- user being booked
+    event_id UUID NOT NULL,
+    booked_by UUID NOT NULL, -- user who made the booking
     booking_start_time TIMESTAMP NOT NULL,
     booking_end_time TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -113,8 +117,8 @@ CREATE TABLE bookings (
 
 -- Integrations table - stores third-party service integrations
 CREATE TABLE integrations (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL,
     provider provider_type NOT NULL,
     access_token VARCHAR(500) NOT NULL,
     refresh_token VARCHAR(500) NOT NULL,
@@ -125,8 +129,8 @@ CREATE TABLE integrations (
 
 -- Notifications table - stores notification settings and logs
 CREATE TABLE notifications (
-    id SERIAL PRIMARY KEY,
-    event_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    event_id UUID NOT NULL,
     channel notification_channel NOT NULL,
     remind_at TIMESTAMP,
     is_sent BOOLEAN DEFAULT false NOT NULL,
@@ -136,8 +140,8 @@ CREATE TABLE notifications (
 
 -- Meeting notes table - stores AI-generated meeting notes
 CREATE TABLE meeting_notes (
-    id SERIAL PRIMARY KEY,
-    event_id INTEGER NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    event_id UUID NOT NULL,
     content TEXT,
     ai_summary TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -393,3 +397,6 @@ DROP TYPE IF EXISTS provider_type;
 DROP TYPE IF EXISTS sync_log_status;
 DROP TYPE IF EXISTS sync_status;
 DROP TYPE IF EXISTS event_status;
+
+-- Drop UUID extension
+DROP EXTENSION IF EXISTS "uuid-ossp";

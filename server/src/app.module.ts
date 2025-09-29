@@ -4,6 +4,7 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './modules/health/health.module';
+import { EventModule } from './modules/event/event.module';
 
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './modules/auth/auth.module';
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
     DatabaseModule,
     HealthModule,
     UsersModule,
+    EventModule,
 
     AuthModule,
     UsersModule,
@@ -29,6 +31,8 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+
+    
   ],
 })
 export class AppModule {}
