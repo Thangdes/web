@@ -1,5 +1,5 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Res, Req, UseGuards, UnauthorizedException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiCookieAuth, ApiExtraModels } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { CookieAuthService } from './services/cookie-auth.service';
@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { SuccessResponseDto } from '../../common/dto/base-response.dto';
 
 @ApiTags('Authentication')
+@ApiExtraModels(AuthResponseDto, SuccessResponseDto)
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -21,9 +22,10 @@ export class AuthController {
 
   @Public()
   @Post('register')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ 
-    summary: 'Register new user',
-    description: 'Create a new user account with email verification'
+    summary: '🔐 Register new user',
+    description: 'Create a new user account with secure authentication'
   })
   @ApiResponse({ 
     status: 201, 
@@ -38,7 +40,6 @@ export class AuthController {
   ): Promise<SuccessResponseDto<AuthResponse>> {
     const result = await this.authService.register(registerDto);
     
-    // Set authentication cookies
     this.cookieAuthService.setAuthCookies(response, result.tokens);
     
     return new SuccessResponseDto('User registered successfully', result, HttpStatus.CREATED);
@@ -63,10 +64,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<SuccessResponseDto<AuthResponse>> {
     const result = await this.authService.login(loginDto);
-    
-    // Set authentication cookies
     this.cookieAuthService.setAuthCookies(response, result.tokens);
-    
     return new SuccessResponseDto('User logged in successfully', result);
   }
 
@@ -122,7 +120,6 @@ export class AuthController {
   async getCurrentUser(
     @Req() request: Request,
   ): Promise<SuccessResponseDto<any>> {
-    // The user is attached to request by JWT strategy
     const user = (request as any).user;
     return new SuccessResponseDto('User profile retrieved successfully', user);
   }

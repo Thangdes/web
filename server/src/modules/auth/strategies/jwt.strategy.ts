@@ -4,19 +4,20 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from '../interfaces/auth.interface';
 import { UserValidationService } from '../../../common/services/user-validation.service';
 import { InvalidTokenException } from '../exceptions/auth.exceptions';
-import env from '../../../config/env';
+import { ConfigService } from '../../../config/config.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(JwtStrategy.name);
 
   constructor(
-    private userValidationService: UserValidationService
+    private userValidationService: UserValidationService,
+    private configService: ConfigService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: env.JWT_SECRET,
+      secretOrKey: configService.jwtSecret,
     });
   }
 

@@ -24,9 +24,6 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     HealthModule,
     UsersModule,
     EventModule,
-
-    AuthModule,
-    UsersModule,
     AuthModule,
   ],
   providers: [

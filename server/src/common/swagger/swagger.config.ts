@@ -4,25 +4,17 @@ import { INestApplication } from '@nestjs/common';
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
     .setTitle('Tempra API')
-    .setDescription('Tempra - Smart Scheduling & Calendar Management API')
-    .setVersion('1.0')
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('users', 'User management endpoints')
-    .addTag('calendar', 'Calendar integration endpoints')
-    .addTag('booking', 'Booking management endpoints')
-    .addTag('availability', 'Availability management endpoints')
-    .addTag('notifications', 'Notification endpoints')
-    .addTag('health', 'Health check endpoints')
-    .addBearerAuth(
+    .setDescription(`
+
+    `)
+    .addCookieAuth(
+      'access_token',
       {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter JWT token',
-        in: 'header',
+        type: 'apiKey',
+        in: 'cookie',
+        description: 'JWT token stored in HTTP-only cookie',
       },
-      'JWT-auth',
+      'cookie',
     )
     .addServer('http://localhost:8000', 'Development server')
     .addServer('https://api.tempra.com', 'Production server')

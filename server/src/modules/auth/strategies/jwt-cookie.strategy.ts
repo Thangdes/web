@@ -2,15 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import type { Request } from 'express';
-import env from '../../../config/env';
+import { ConfigService } from '../../../config/config.service';
 import { UserValidationService } from '../../../common/services/user-validation.service';
 import { JwtPayload } from '../interfaces/auth.interface';
+
 @Injectable()
 export class JwtCookieStrategy extends PassportStrategy(Strategy, 'jwt-cookie') {
   private readonly logger = new Logger(JwtCookieStrategy.name);
 
   constructor(
     private readonly userValidationService: UserValidationService,
+    private readonly configService: ConfigService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -25,7 +27,7 @@ export class JwtCookieStrategy extends PassportStrategy(Strategy, 'jwt-cookie') 
         },
       ]),
       ignoreExpiration: false,
-      secretOrKey: env.JWT_SECRET,
+      secretOrKey: configService.jwtSecret,
       passReqToCallback: true,
     });
   }

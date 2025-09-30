@@ -7,9 +7,8 @@ import { AuthRepository } from './auth.repository';
 import { CookieAuthService } from './services/cookie-auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtCookieStrategy } from './strategies/jwt-cookie.strategy';
-import { UsersModule } from '../users/users.module';
 import { ConfigModule } from '../../config/config.module';
-import env from '../../config/env';
+import { ConfigService } from '../../config/config.service';
 import { CommonModule } from '../../common/common.module';
 
 @Module({
@@ -17,11 +16,15 @@ import { CommonModule } from '../../common/common.module';
     CommonModule,
     ConfigModule,
     PassportModule,
-    JwtModule.register({
-      secret: env.JWT_SECRET,
-      signOptions: {
-        expiresIn: env.JWT_EXPIRES_IN,
-      },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.jwtSecret,
+        signOptions: {
+          expiresIn: configService.jwtExpiresIn,
+        },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],

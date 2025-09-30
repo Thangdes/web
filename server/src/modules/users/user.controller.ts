@@ -1,13 +1,19 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpStatus, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiCookieAuth, ApiExtraModels } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto/user.dto';
 import { MessageService } from '../../common/message/message.service';
 import { SuccessResponseDto, PaginatedResponseDto } from '../../common/dto/base-response.dto';
 import { PaginationQueryDto, SearchPaginationQueryDto } from '../../common/dto/pagination.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { SwaggerExamples } from '../../common/swagger/swagger-examples';
 
 @ApiTags('Users')
+@ApiExtraModels(UserResponseDto, CreateUserDto, UpdateUserDto, SuccessResponseDto, PaginatedResponseDto)
 @Controller('users')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth('bearer')
+@ApiCookieAuth('cookie')
 export class UserController {
     constructor(
         private readonly userService: UserService,
@@ -15,9 +21,43 @@ export class UserController {
     ) {}
 
     @Post()
-    @ApiOperation({ summary: 'Create a new user' })
-    @ApiResponse({ status: 201, description: 'User created successfully', type: UserResponseDto })
-    @ApiResponse({ status: 400, description: 'Invalid input data' })
+    @ApiOperation({ 
+        summary: '👤 Create a new user',
+        description: 'Create a new user account (Admin only)'
+    })
+    @ApiResponse({ 
+        status: 201, 
+        description: '✅ User created successfully',
+        schema: {
+            example: SwaggerExamples.Users.Create.response
+        }
+    })
+    @ApiResponse({ 
+        status: 400, 
+        description: '❌ Validation failed - Invalid input data',
+        schema: {
+            example: SwaggerExamples.Errors.ValidationError
+        }
+    })
+    @ApiResponse({ 
+        status: 409, 
+        description: '❌ Conflict - Email or username already exists',
+        schema: {
+            example: {
+                success: false,
+                error: 'Conflict',
+                message: 'Email already exists',
+                statusCode: 409
+            }
+        }
+    })
+    @ApiResponse({ 
+        status: 401, 
+        description: '❌ Unauthorized - Invalid or expired token',
+        schema: {
+            example: SwaggerExamples.Errors.Unauthorized
+        }
+    })
     async createUser(@Body() createUserDto: CreateUserDto): Promise<SuccessResponseDto<UserResponseDto>> {
         const user = await this.userService.createUser(createUserDto);
         
@@ -31,8 +71,24 @@ export class UserController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all users with pagination' })
-    @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
+    @ApiOperation({ 
+        summary: '👥 Get all users with pagination',
+        description: 'Retrieve paginated list of users with search and filtering'
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: '✅ Users retrieved successfully with pagination',
+        schema: {
+            example: SwaggerExamples.Users.List.response
+        }
+    })
+    @ApiResponse({ 
+        status: 401, 
+        description: '❌ Unauthorized - Invalid or expired token',
+        schema: {
+            example: SwaggerExamples.Errors.Unauthorized
+        }
+    })
     async getUsers(@Query() query: PaginationQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
         const result = await this.userService.getUsers(query);
         

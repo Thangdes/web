@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthRepository } from './auth.repository';
 import { PasswordService } from '../../common/services/password.service';
@@ -12,12 +12,10 @@ import {
     AuthUser 
 } from './interfaces/auth.interface';
 import { 
-    UserAlreadyExistsException, 
     InvalidCredentialsException,
     AuthenticationFailedException,
     DuplicateEmailException,
     DuplicateUsernameException,
-    UserNotFoundException 
 } from './exceptions/auth.exceptions';
 import { MessageService } from '../../common/message/message.service';
 import { ConfigService } from '../../config/config.service';
@@ -132,35 +130,57 @@ export class AuthService {
 
 
   private async generateTokens(user: any): Promise<AuthTokens> {
-    const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      username: user.username,
-      type: 'access',
-    };
+    try {
+      this.logger.debug(`Generating tokens for user: ${user.email}`);
 
-    const refreshPayload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      username: user.username,
-      type: 'refresh',
-    };
+      const payload: JwtPayload = {
+        sub: user.id,
+        email: user.email,
+        username: user.username,
+        type: 'access',
+      };
 
-    const access_token = this.jwtService.sign(payload, {
-      expiresIn: this.configService.jwtExpiresIn,
-    });
+      const refreshPayload: JwtPayload = {
+        sub: user.id,
+        email: user.email,
+        username: user.username,
+        type: 'refresh',
+      };
 
-    const refresh_token = this.jwtService.sign(refreshPayload, {
-      secret: this.configService.jwtRefreshSecret,
-      expiresIn: this.configService.jwtRefreshExpiresIn,
-    });
+      // Generate access token
+      this.logger.debug('Generating access token...');
+      const access_token = this.jwtService.sign(payload, {
+        expiresIn: this.configService.jwtExpiresIn,
+      });
 
-    return {
-      access_token,
-      refresh_token,
-      token_type: 'Bearer',
-      expires_in: this.parseExpirationTime(this.configService.jwtExpiresIn),
-    };
+      // Generate refresh token
+      this.logger.debug('Generating refresh token...');
+      const refresh_token = this.jwtService.sign(refreshPayload, {
+        secret: this.configService.jwtRefreshSecret,
+        expiresIn: this.configService.jwtRefreshExpiresIn,
+      });
+
+      this.logger.debug(`Tokens generated successfully for user: ${user.email}`);
+
+      return {
+        access_token,
+        refresh_token,
+        token_type: 'Bearer',
+        expires_in: this.parseExpirationTime(this.configService.jwtExpiresIn),
+      };
+    } catch (error) {
+      this.logger.error(`Token generation failed for user ${user.email}:`, error);
+      
+      // Log JWT configuration for debugging
+      this.logger.error('JWT Configuration Debug:', {
+        jwtSecretLength: this.configService.jwtSecret?.length || 0,
+        jwtRefreshSecretLength: this.configService.jwtRefreshSecret?.length || 0,
+        jwtExpiresIn: this.configService.jwtExpiresIn,
+        jwtRefreshExpiresIn: this.configService.jwtRefreshExpiresIn,
+      });
+
+      throw new AuthenticationFailedException('Failed to generate authentication tokens');
+    }
   }
 
   private parseExpirationTime(expiresIn: string): number {
