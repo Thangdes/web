@@ -1,17 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth, ApiCookieAuth, ApiExtraModels } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto/user.dto';
 import { MessageService } from '../../common/message/message.service';
 import { SuccessResponseDto, PaginatedResponseDto } from '../../common/dto/base-response.dto';
 import { PaginationQueryDto, SearchPaginationQueryDto } from '../../common/dto/pagination.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Public } from '../../common/decorators/public.decorator';
 import { SwaggerExamples } from '../../common/swagger/swagger-examples';
 
 @ApiTags('Users')
 @ApiExtraModels(UserResponseDto, CreateUserDto, UpdateUserDto, SuccessResponseDto, PaginatedResponseDto)
 @Controller('users')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth('bearer')
 @ApiCookieAuth('cookie')
 export class UserController {
@@ -21,9 +20,10 @@ export class UserController {
     ) {}
 
     @Post()
+    @Public()
     @ApiOperation({ 
         summary: '👤 Create a new user',
-        description: 'Create a new user account (Admin only)'
+        description: 'Create a new user account - Public endpoint for initial setup'
     })
     @ApiResponse({ 
         status: 201, 
@@ -49,13 +49,6 @@ export class UserController {
                 message: 'Email already exists',
                 statusCode: 409
             }
-        }
-    })
-    @ApiResponse({ 
-        status: 401, 
-        description: '❌ Unauthorized - Invalid or expired token',
-        schema: {
-            example: SwaggerExamples.Errors.Unauthorized
         }
     })
     async createUser(@Body() createUserDto: CreateUserDto): Promise<SuccessResponseDto<UserResponseDto>> {
