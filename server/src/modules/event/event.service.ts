@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { PaginatedResult } from "src/common/interfaces/pagination.interface";
+import { PaginatedResult } from "../../common/interfaces/pagination.interface";
 import { Event } from "./event";
-import { PaginationOptions } from "src/common/interfaces/pagination.interface";
+import { PaginationOptions } from "../../common/interfaces/pagination.interface";
 import { CreateEventDto } from "./dto/events.dto";
 import { EventRepository } from "./event.repository";
 

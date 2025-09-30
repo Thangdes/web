@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/database/database.service';
-import { PaginationService } from 'src/common/services/pagination.service';
-import { PaginatedResult, PaginationOptions } from 'src/common/interfaces/pagination.interface';
+import { DatabaseService } from '../../database/database.service';
+import { PaginationService } from '../../common/services/pagination.service';
+import { PaginatedResult, PaginationOptions } from '../../common/interfaces/pagination.interface';
 import { Event } from './event';
 import { CreateEventDto } from './dto/events.dto';
-import { UserValidationService } from 'src/common/services/user-validation.service';
-import { CalendarValidationService } from 'src/common/services/calendar-validation.service';
-import { MessageService } from 'src/common/message/message.service';
+import { UserValidationService } from '../../common/services/user-validation.service';
+import { CalendarValidationService } from '../../common/services/calendar-validation.service';
+import { MessageService } from '../../common/message/message.service';
 import { EventCreationFailedException } from './exceptions/event.exceptions';
-import { UserOwnedRepository } from 'src/common/repositories/base.repository';
+import { UserOwnedRepository } from '../../common/repositories/base.repository';
 
 @Injectable()
 export class EventRepository extends UserOwnedRepository<Event> {

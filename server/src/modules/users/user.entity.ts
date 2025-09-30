@@ -1,4 +1,4 @@
-import { StatusEntity } from 'src/common/interfaces/base-entity.interface';
+import { StatusEntity } from '../../common/interfaces/base-entity.interface';
 
 export interface User extends StatusEntity {
   email: string;

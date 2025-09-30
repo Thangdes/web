@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User } from './user.entity';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
-import { PaginatedResult, PaginationOptions } from 'src/common/interfaces/pagination.interface';
+import { PaginatedResult, PaginationOptions } from '../../common/interfaces/pagination.interface';
 
 @Injectable()
 export class UserService {

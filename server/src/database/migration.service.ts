@@ -65,16 +65,48 @@ export class MigrationService {
       const filePath = path.join(this.migrationsPath, file);
       const content = fs.readFileSync(filePath, 'utf-8');
       
-      const [upContent, downContent] = content.split('-- DOWN').map(s => s.trim());
+      const downMarkerRegex = /^-- DOWN Migration:.*$/m;
+      const downMarkerMatch = content.match(downMarkerRegex);
+      
+      let upContent = content;
+      let downContent = '';
+      
+      if (downMarkerMatch) {
+        const downMarkerIndex = content.indexOf(downMarkerMatch[0]);
+        upContent = content.substring(0, downMarkerIndex).trim();
+        downContent = content.substring(downMarkerIndex + downMarkerMatch[0].length).trim();
+      }
+      
+      upContent = upContent.replace(/^-- UP Migration:.*$/m, '').trim();
+      upContent = upContent.replace(/^-- =+$/m, '').trim();
+      
+      const lines = upContent.split('\n');
+      let startIndex = 0;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line === '' || line.startsWith('--')) {
+          startIndex = i + 1;
+        } else {
+          break;
+        }
+      }
+      
+      upContent = lines.slice(startIndex).join('\n').trim();
       
       const migration: Migration = {
         id: file.replace('.sql', ''),
         name: file,
-        up: upContent.replace('-- UP', '').trim(),
-        down: downContent || '',
+        up: upContent,
+        down: downContent,
         timestamp: new Date()
       };
 
+      this.logger.debug(`Loaded migration ${file}:`);
+      this.logger.debug(`UP content length: ${upContent.length}`);
+      this.logger.debug(`DOWN content length: ${downContent.length}`);
+      this.logger.debug(`UP content preview: ${upContent.substring(0, 200)}...`);
+      
       migrations.push(migration);
     }
 

@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Query, Request, HttpStatus, UseGuards } from "@nestjs/common";
 import { EventService } from "./event.service";
 import { CreateEventDto } from "./dto/events.dto";
-import { MessageService } from "src/common/message/message.service";
+import { MessageService } from "../../common/message/message.service";
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
-import { SuccessResponseDto, PaginatedResponseDto } from "src/common/dto/base-response.dto";
-import { PaginationQueryDto } from "src/common/dto/pagination.dto";
+import { SuccessResponseDto, PaginatedResponseDto } from "../../common/dto/base-response.dto";
+import { PaginationQueryDto } from "../../common/dto/pagination.dto";
 
 @ApiTags('Events')
 @Controller('calendar')

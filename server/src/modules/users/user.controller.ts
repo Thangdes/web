@@ -2,9 +2,9 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpStatus } fr
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto/user.dto';
-import { MessageService } from 'src/common/message/message.service';
-import { SuccessResponseDto, PaginatedResponseDto } from 'src/common/dto/base-response.dto';
-import { PaginationQueryDto, SearchPaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { MessageService } from '../../common/message/message.service';
+import { SuccessResponseDto, PaginatedResponseDto } from '../../common/dto/base-response.dto';
+import { PaginationQueryDto, SearchPaginationQueryDto } from '../../common/dto/pagination.dto';
 
 @ApiTags('Users')
 @Controller('users')

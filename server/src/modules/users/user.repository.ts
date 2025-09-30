@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
-import { PaginationService } from 'src/common/services/pagination.service';
-import { MessageService } from 'src/common/message/message.service';
+import { PaginationService } from '../../common/services/pagination.service';
+import { MessageService } from '../../common/message/message.service';
 import { User } from './user.entity';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
-import { BaseRepository } from 'src/common/repositories/base.repository';
-import { PaginatedResult, PaginationOptions } from 'src/common/interfaces/pagination.interface';
+import { BaseRepository } from '../../common/repositories/base.repository';
+import { PaginatedResult, PaginationOptions } from '../../common/interfaces/pagination.interface';
 import { UserCreationFailedException, UserUpdateFailedException, DuplicateUserException } from './exceptions/user.exceptions';
 
 @Injectable()

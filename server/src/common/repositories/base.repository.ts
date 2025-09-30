@@ -1,18 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DatabaseService } from 'src/database/database.service';
-import { PaginationService } from 'src/common/services/pagination.service';
-import { MessageService } from 'src/common/message/message.service';
+import { DatabaseService } from '../../database/database.service';
+import { PaginationService } from '../services/pagination.service';
+import { MessageService } from '../message/message.service';
 import { 
     BaseEntity, 
     UserOwnedEntity, 
-} from 'src/common/interfaces/base-entity.interface';
+} from '../interfaces/base-entity.interface';
 import { 
     PaginatedResult, 
     PaginationOptions 
-} from 'src/common/interfaces/pagination.interface';
+} from '../interfaces/pagination.interface';
 import { 
     RepositoryOptions,
-} from 'src/common/interfaces/database.interface';
+} from '../interfaces/database.interface';
 
 
 @Injectable()

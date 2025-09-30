@@ -1,6 +1,6 @@
 import { IsString, IsEmail, IsOptional, IsBoolean, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { StatusEntityDto } from 'src/common/dto/base-entity.dto';
+import { StatusEntityDto } from '../../../common/dto/base-entity.dto';
 
 export class CreateUserDto {
     @ApiProperty({

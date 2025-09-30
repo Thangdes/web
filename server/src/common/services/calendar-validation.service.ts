@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DatabaseService } from 'src/database/database.service';
+import { DatabaseService } from '../../database/database.service';
 import { MessageService } from '../message/message.service';
-import { CalendarSyncException } from 'src/modules/event/exceptions/event.exceptions';
+import { CalendarSyncException } from '../../modules/event/exceptions/event.exceptions';
 
 @Injectable()
 export class CalendarValidationService {
