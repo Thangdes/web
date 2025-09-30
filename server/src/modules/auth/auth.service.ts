@@ -1,98 +1,186 @@
-import {
-  Injectable,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { UserRepository } from '../users/user.repository';
+import { AuthRepository } from './auth.repository';
+import { PasswordService } from '../../common/services/password.service';
+import { UserValidationService } from '../../common/services/user-validation.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { AuthResponse, JwtPayload } from './interfaces/auth.interface';
+import { 
+    AuthResponse, 
+    JwtPayload, 
+    AuthTokens,
+    AuthUser 
+} from './interfaces/auth.interface';
+import { 
+    UserAlreadyExistsException, 
+    InvalidCredentialsException,
+    AuthenticationFailedException,
+    DuplicateEmailException,
+    DuplicateUsernameException,
+    UserNotFoundException 
+} from './exceptions/auth.exceptions';
+import { MessageService } from '../../common/message/message.service';
+import { ConfigService } from '../../config/config.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
-    private userRepository: UserRepository,
+    private authRepository: AuthRepository,
     private jwtService: JwtService,
+    private readonly messageService: MessageService,
+    private readonly configService: ConfigService,
+    private readonly passwordService: PasswordService,
+    private readonly userValidationService: UserValidationService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
-    // Check if user already exists
-    const existingUser = await this.userRepository.findByEmail(registerDto.email);
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
+    try {
+      const { emailExists, usernameExists } = await this.userValidationService.validateUserUniqueness(
+        registerDto.email,
+        registerDto.username
+      );
+      
+      if (emailExists) {
+        this.logger.warn(`Registration attempt with existing email: ${registerDto.email}`);
+        throw new DuplicateEmailException(registerDto.email);
+      }
+
+      if (usernameExists) {
+        this.logger.warn(`Registration attempt with existing username: ${registerDto.username}`);
+        throw new DuplicateUsernameException(registerDto.username);
+      }
+
+      const hashedPassword = await this.passwordService.hashPassword(registerDto.password);
+
+      const user = await this.authRepository.createUser({
+        ...registerDto,
+        password_hash: hashedPassword,
+      });
+
+      this.logger.log(`User registered successfully: ${user.email}`);
+
+      const tokens = await this.generateTokens(user);
+      
+      const userResponse = this.createUserResponse(user);
+
+      return {
+        tokens,
+        user: userResponse,
+        login_at: new Date(),
+      };
+    } catch (error) {
+      if (error instanceof DuplicateEmailException || error instanceof DuplicateUsernameException) {
+        throw error;
+      }
+      
+      this.logger.error('Registration failed:', error);
+      throw new AuthenticationFailedException(this.messageService.get('auth.registration_failed'));
     }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
-    // Create user
-    const user = await this.userRepository.create({
-      ...registerDto,
-      password_hash: hashedPassword,
-    });
-
-    // Generate JWT token
-    const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      name: user.username,
-    };
-
-    const access_token = this.jwtService.sign(payload);
-
-    return {
-      access_token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.username,
-      },
-    };
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponse> {
-    // Find user by email
-    const user = await this.userRepository.findByEmail(loginDto.email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+    try {
+      const user = await this.userValidationService.findUserByEmail(loginDto.email);
+      if (!user) {
+        this.logger.warn(`Login attempt with non-existent email: ${loginDto.email}`);
+        throw new InvalidCredentialsException();
+      }
+
+      const isPasswordValid = await this.passwordService.comparePassword(
+        loginDto.password,
+        user.password_hash,
+      );
+      if (!isPasswordValid) {
+        this.logger.warn(`Invalid password attempt for email: ${loginDto.email}`);
+        throw new InvalidCredentialsException();
+      }
+
+
+      await this.authRepository.updateLastLogin(user.id);
+
+      this.logger.log(`User logged in successfully: ${user.email}`);
+
+      const tokens = await this.generateTokens(user);
+      
+      const userResponse = this.createUserResponse(user);
+
+      return {
+        tokens,
+        user: userResponse,
+        login_at: new Date(),
+      };
+    } catch (error) {
+      if (error instanceof InvalidCredentialsException) {
+        throw error;
+      }
+      
+      this.logger.error('Login failed:', error);
+      throw new AuthenticationFailedException(this.messageService.get('auth.login_failed'));
     }
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      user.password_hash,
-    );
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    // Generate JWT token
-    const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      name: user.username,
-    };
-
-    const access_token = this.jwtService.sign(payload);
-
-    return {
-      access_token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.username,
-      },
-    };
   }
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.userRepository.findByEmail(email);
-    if (user && (await bcrypt.compare(password, user.password_hash))) {
+    const user = await this.userValidationService.findUserByEmail(email);
+    if (user && (await this.passwordService.comparePassword(password, user.password_hash))) {
       const { password_hash, ...result } = user;
       return result;
     }
     return null;
+  }
+
+
+  private async generateTokens(user: any): Promise<AuthTokens> {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+      type: 'access',
+    };
+
+    const refreshPayload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+      type: 'refresh',
+    };
+
+    const access_token = this.jwtService.sign(payload, {
+      expiresIn: this.configService.jwtExpiresIn,
+    });
+
+    const refresh_token = this.jwtService.sign(refreshPayload, {
+      secret: this.configService.jwtRefreshSecret,
+      expiresIn: this.configService.jwtRefreshExpiresIn,
+    });
+
+    return {
+      access_token,
+      refresh_token,
+      token_type: 'Bearer',
+      expires_in: this.parseExpirationTime(this.configService.jwtExpiresIn),
+    };
+  }
+
+  private parseExpirationTime(expiresIn: string): number {
+    const match = expiresIn.match(/^(\d+)([smhd])$/);
+    if (!match) return 3600; 
+
+    const value = parseInt(match[1]);
+    const unit = match[2];
+
+    switch (unit) {
+      case 's': return value;
+      case 'm': return value * 60;
+      case 'h': return value * 3600;
+      case 'd': return value * 86400;
+      default: return 3600;
+    }
+  }
+
+  private createUserResponse(user: any): AuthUser {
+    const { password_hash, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 }

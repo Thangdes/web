@@ -112,9 +112,6 @@ export class UserRepository extends BaseRepository<User> {
     }
   }
 
-  /**
-   * Search users by email or username using base search method
-   */
   async searchUsers(searchTerm: string, paginationOptions: Partial<PaginationOptions>): Promise<PaginatedResult<User>> {
     const searchPattern = `%${searchTerm}%`;
     const whereCondition = 'is_active = true AND (email ILIKE $1 OR username ILIKE $1)';

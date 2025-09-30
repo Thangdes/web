@@ -71,4 +71,83 @@ export class UserValidationService {
             throw new Error(this.messageService.get('error.internal_server_error'));
         }
     }
+
+    async emailExists(email: string): Promise<boolean> {
+        const query = 'SELECT 1 FROM users WHERE email = $1 LIMIT 1';
+        const params = [email];
+
+        try {
+            const result = await this.databaseService.query(query, params);
+            return result.rows.length > 0;
+        } catch (error) {
+            throw new Error(this.messageService.get('error.internal_server_error'));
+        }
+    }
+
+    async usernameExists(username: string): Promise<boolean> {
+        const query = 'SELECT 1 FROM users WHERE username = $1 LIMIT 1';
+        const params = [username];
+
+        try {
+            const result = await this.databaseService.query(query, params);
+            return result.rows.length > 0;
+        } catch (error) {
+            throw new Error(this.messageService.get('error.internal_server_error'));
+        }
+    }
+
+    async validateUserUniqueness(email: string, username: string, excludeUserId?: string): Promise<{ emailExists: boolean; usernameExists: boolean }> {
+        let emailQuery = 'SELECT 1 FROM users WHERE email = $1';
+        let usernameQuery = 'SELECT 1 FROM users WHERE username = $1';
+        let emailParams = [email];
+        let usernameParams = [username];
+
+        if (excludeUserId) {
+            emailQuery += ' AND id != $2';
+            usernameQuery += ' AND id != $2';
+            emailParams.push(excludeUserId);
+            usernameParams.push(excludeUserId);
+        }
+
+        emailQuery += ' LIMIT 1';
+        usernameQuery += ' LIMIT 1';
+
+        try {
+            const [emailResult, usernameResult] = await Promise.all([
+                this.databaseService.query(emailQuery, emailParams),
+                this.databaseService.query(usernameQuery, usernameParams)
+            ]);
+
+            return {
+                emailExists: emailResult.rows.length > 0,
+                usernameExists: usernameResult.rows.length > 0
+            };
+        } catch (error) {
+            throw new Error(this.messageService.get('error.internal_server_error'));
+        }
+    }
+
+    async findUserByEmail(email: string): Promise<any | null> {
+        const query = 'SELECT * FROM users WHERE email = $1 AND is_active = true';
+        const params = [email];
+
+        try {
+            const result = await this.databaseService.query(query, params);
+            return result.rows[0] || null;
+        } catch (error) {
+            throw new Error(this.messageService.get('error.internal_server_error'));
+        }
+    }
+
+    async findUserByUsername(username: string): Promise<any | null> {
+        const query = 'SELECT * FROM users WHERE username = $1 AND is_active = true';
+        const params = [username];
+
+        try {
+            const result = await this.databaseService.query(query, params);
+            return result.rows[0] || null;
+        } catch (error) {
+            throw new Error(this.messageService.get('error.internal_server_error'));
+        }
+    }
 }

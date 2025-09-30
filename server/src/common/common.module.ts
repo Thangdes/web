@@ -12,6 +12,8 @@ import { PaginationService } from './services/pagination.service';
 import { UserValidationService } from './services/user-validation.service';
 import { CalendarValidationService } from './services/calendar-validation.service';
 import { EventValidationService } from './services/event-validation.service';
+import { PasswordService } from './services/password.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Global()
 @Module({
@@ -21,6 +23,8 @@ import { EventValidationService } from './services/event-validation.service';
     UserValidationService,
     CalendarValidationService,
     EventValidationService,
+    PasswordService,
+    JwtAuthGuard,
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,
@@ -50,6 +54,6 @@ import { EventValidationService } from './services/event-validation.service';
       inject: [MessageService],
     },
   ],
-  exports: [MessageModule, PaginationService, UserValidationService, CalendarValidationService, EventValidationService],
+  exports: [MessageModule, PaginationService, UserValidationService, CalendarValidationService, EventValidationService, PasswordService, JwtAuthGuard],
 })
 export class CommonModule {}

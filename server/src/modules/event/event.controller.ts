@@ -5,6 +5,7 @@ import { MessageService } from "../../common/message/message.service";
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
 import { SuccessResponseDto, PaginatedResponseDto } from "../../common/dto/base-response.dto";
 import { PaginationQueryDto } from "../../common/dto/pagination.dto";
+import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 
 @ApiTags('Events')
 @Controller('calendar')

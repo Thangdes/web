@@ -4,20 +4,12 @@ import {
     ExceptionFilter, 
     HttpException, 
     HttpStatus, 
-    Logger,
-} from "@nestjs/common";
+    Logger 
+} from '@nestjs/common';
 import { Request, Response } from 'express';
-import { MessageService } from "../message/message.service";
-
-interface ErrorResponse {
-    statusCode: number;
-    message: string | string[];
-    error?: string;
-    timestamp: string;
-    path: string;
-    requestId?: string;
-    details?: any;
-}
+import { MessageService } from '../message/message.service';
+import { ErrorResponse } from '../interfaces/api-response.interface';
+import env from '../../config/env';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -34,7 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         
         this.logError(exception, request, errorResponse);
         
-        response.status(errorResponse.statusCode).json(errorResponse);
+        response.status(errorResponse.status).json(errorResponse);
     }
 
     private buildErrorResponse(exception: unknown, request: Request): ErrorResponse {
@@ -61,24 +53,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 }
             }
         } else if (exception instanceof Error) {
-            message = process.env.NODE_ENV === 'production' 
+            message = env.NODE_ENV === 'production' 
                 ? this.messageService.get('error.internal_server_error')
                 : exception.message;
-            details = process.env.NODE_ENV !== 'production' ? exception.stack : undefined;
+            details = env.NODE_ENV !== 'production' ? exception.stack : undefined;
         }
 
         const errorResponse: ErrorResponse = {
-            statusCode: status,
-            message,
-            error,
-            timestamp: new Date().toISOString(),
-            path: request.url,
-            requestId: request.headers['x-request-id'] as string,
+            status,
+            message: Array.isArray(message) ? message.join(', ') : message,
+            errors: Array.isArray(message) ? message : [message],
+            timestamp: new Date(),
+            data: null
         };
-
-        if (details) {
-            errorResponse.details = details;
-        }
 
         return errorResponse;
     }
@@ -88,11 +75,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         const userAgent = headers['user-agent'] || '';
         const requestId = headers['x-request-id'] || 'unknown';
 
-        const logMessage = `${method} ${url} - ${errorResponse.statusCode} - ${ip} - ${userAgent} - RequestId: ${requestId}`;
+        const logMessage = `${method} ${url} - ${errorResponse.status} - ${ip} - ${userAgent} - RequestId: ${requestId}`;
 
-        if (errorResponse.statusCode >= 500) {
+        if (errorResponse.status >= 500) {
             this.logger.error(logMessage, exception instanceof Error ? exception.stack : exception);
-        } else if (errorResponse.statusCode >= 400) {
+        } else if (errorResponse.status >= 400) {
             this.logger.warn(logMessage);
         }
     }

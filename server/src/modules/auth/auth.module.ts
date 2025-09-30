@@ -1,25 +1,37 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from '../auth/strategies/jwt.strategy.ts';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AuthController } from './auth.controller';
+import { AuthRepository } from './auth.repository';
+import { CookieAuthService } from './services/cookie-auth.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtCookieStrategy } from './strategies/jwt-cookie.strategy';
 import { UsersModule } from '../users/users.module';
+import { ConfigModule } from '../../config/config.module';
+import env from '../../config/env';
+import { CommonModule } from '../../common/common.module';
 
 @Module({
   imports: [
-    UsersModule,
+    CommonModule,
+    ConfigModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'tempra-secret-key',
+      secret: env.JWT_SECRET,
       signOptions: {
-        expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+        expiresIn: env.JWT_EXPIRES_IN,
       },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard],
-  exports: [AuthService, JwtAuthGuard],
+  providers: [
+    AuthService, 
+    AuthRepository, 
+    CookieAuthService,
+    JwtStrategy,
+    JwtCookieStrategy,
+  ],
+  exports: [AuthService],
 })
 export class AuthModule {}

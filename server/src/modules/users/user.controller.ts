@@ -21,7 +21,6 @@ export class UserController {
     async createUser(@Body() createUserDto: CreateUserDto): Promise<SuccessResponseDto<UserResponseDto>> {
         const user = await this.userService.createUser(createUserDto);
         
-        // Remove password_hash from response
         const { password_hash, ...userResponse } = user;
         
         return new SuccessResponseDto(
@@ -37,7 +36,6 @@ export class UserController {
     async getUsers(@Query() query: PaginationQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
         const result = await this.userService.getUsers(query);
         
-        // Remove password_hash from all users in response
         const usersWithoutPassword = result.data.map(user => {
             const { password_hash, ...userResponse } = user;
             return userResponse as UserResponseDto;
@@ -60,7 +58,6 @@ export class UserController {
 
         const result = await this.userService.searchUsers(query.search, query);
         
-        // Remove password_hash from all users in response
         const usersWithoutPassword = result.data.map(user => {
             const { password_hash, ...userResponse } = user;
             return userResponse as UserResponseDto;
@@ -89,7 +86,6 @@ export class UserController {
             );
         }
         
-        // Remove password_hash from response
         const { password_hash, ...userResponse } = user;
         
         return new SuccessResponseDto(
@@ -117,7 +113,6 @@ export class UserController {
             );
         }
         
-        // Remove password_hash from response
         const { password_hash, ...userResponse } = user;
         
         return new SuccessResponseDto(
