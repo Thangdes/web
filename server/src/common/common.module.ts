@@ -11,6 +11,7 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { PaginationService } from './services/pagination.service';
 import { UserValidationService } from './services/user-validation.service';
 import { CalendarValidationService } from './services/calendar-validation.service';
+import { EventValidationService } from './services/event-validation.service';
 
 @Global()
 @Module({
@@ -19,6 +20,7 @@ import { CalendarValidationService } from './services/calendar-validation.servic
     PaginationService,
     UserValidationService,
     CalendarValidationService,
+    EventValidationService,
     {
       provide: APP_INTERCEPTOR,
       useClass: RequestIdInterceptor,
@@ -48,6 +50,6 @@ import { CalendarValidationService } from './services/calendar-validation.servic
       inject: [MessageService],
     },
   ],
-  exports: [MessageModule, PaginationService, UserValidationService, CalendarValidationService],
+  exports: [MessageModule, PaginationService, UserValidationService, CalendarValidationService, EventValidationService],
 })
 export class CommonModule {}
