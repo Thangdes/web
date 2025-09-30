@@ -6,6 +6,12 @@ import { CommonModule } from './common/common.module';
 import { HealthModule } from './modules/health/health.module';
 import { EventModule } from './modules/event/event.module';
 
+import { APP_GUARD } from '@nestjs/core';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -16,8 +22,17 @@ import { EventModule } from './modules/event/event.module';
     HealthModule,
     UsersModule,
     EventModule,
+
+    AuthModule,
+    UsersModule,
   ],
-  controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+
+    
+  ],
 })
 export class AppModule {}
