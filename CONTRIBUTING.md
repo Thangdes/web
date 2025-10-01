@@ -1,6 +1,6 @@
-# Contributing to Tempra
+# Contributing to Calento.space
 
-Thank you for your interest in contributing to Tempra! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Calento.space! This document provides guidelines and information for contributors.
 
 ## 🚀 Getting Started
 
@@ -23,7 +23,7 @@ Thank you for your interest in contributing to Tempra! This document provides gu
    ```bash
    # Clone and setup
    git clone <repository-url>
-   cd tempra
+   cd calento.space
    
    # Copy environment file
    cp .env.example server/.env

@@ -1,7 +1,7 @@
-# Tempra Backend Development Tasks - Progress Tracker
+# Calento.space Backend Development Tasks - Progress Tracker
 
 **Last Updated**: 2025-10-01
-**Project**: Tempra Calendar & Scheduling Platform
+**Project**: Calento.space - Smart Calendar Assistant
 **Version**: 1.0.0
 
 ---

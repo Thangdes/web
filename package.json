@@ -1,7 +1,7 @@
 {
-  "name": "tempra",
+  "name": "calento.space",
   "version": "1.0.0",
-  "description": "A modern web application built with Node.js, PostgreSQL, and Redis",
+  "description": "A smart Calendar Assistant - Manage schedules, sync with Google Calendar, and automate time management",
   "main": "index.js",
   "scripts": {
     "install:all": "npm run install:server && npm run install:client",

@@ -3,9 +3,19 @@ import { INestApplication } from '@nestjs/common';
 
 export function setupSwagger(app: INestApplication): void {
   const config = new DocumentBuilder()
-    .setTitle('Tempra API')
-    .setDescription(`
+    .setTitle('Calento.space API')
+      .setDescription(`
+  Calento.space - Smart Calendar Assistant API
 
+  Manage your schedules, sync with Google Calendar, and automate your time management.
+
+  Features:
+  - Event management with recurring events support
+  - Google Calendar bidirectional sync
+  - Conflict detection and resolution
+  - Availability management
+  - Booking system
+  - Real-time webhook notifications
     `)
     .addCookieAuth(
       'access_token',
@@ -17,7 +27,7 @@ export function setupSwagger(app: INestApplication): void {
       'cookie',
     )
     .addServer('http://localhost:8000', 'Development server')
-    .addServer('https://api.tempra.com', 'Production server')
+    .addServer('https://api.calento.space', 'Production server')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
@@ -33,7 +43,7 @@ export function setupSwagger(app: INestApplication): void {
       showRequestHeaders: true,
       tryItOutEnabled: true,
     },
-    customSiteTitle: 'Tempra API Documentation',
+    customSiteTitle: 'Calento.space API Documentation',
     customfavIcon: '/favicon.ico',
     customCss: `
       .swagger-ui .topbar { display: none }
