@@ -1,7 +1,7 @@
-# Tiến Độ Phát Triển Backend Tempra
+# Tiến Độ Phát Triển Backend Calento.space
 
 **Cập nhật lần cuối**: 2025-10-01  
-**Dự án**: Tempra Calendar & Scheduling Platform  
+**Dự án**: Calento.space - Smart Calendar Assistant  
 **Phiên bản**: 1.0.0
 
 ---

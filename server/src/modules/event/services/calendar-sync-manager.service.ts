@@ -19,21 +19,21 @@ export class CalendarSyncManagerService {
 
     async performInitialSync(
         userId: string,
-        strategy: SyncStrategy = SyncStrategy.MERGE_PREFER_TEMPRA
+        strategy: SyncStrategy = SyncStrategy.MERGE_PREFER_CALENTO
     ): Promise<InitialSyncResult> {
         this.logger.log(`Starting initial sync for user ${userId} with strategy: ${strategy}`);
 
         const result: InitialSyncResult = {
             totalGoogleEvents: 0,
-            totalTempraEvents: 0,
+            totalCalentoEvents: 0,
             imported: 0,
             conflicts: [],
             errors: []
         };
 
         try {
-            const tempraEvents = await this.getTempraEvents(userId);
-            result.totalTempraEvents = tempraEvents.length;
+            const calendoEvents = await this.getCalentoEvents(userId);
+            result.totalCalentoEvents = calendoEvents.length;
 
             const timeMin = new Date();
             timeMin.setDate(timeMin.getDate() - 30);
@@ -47,9 +47,9 @@ export class CalendarSyncManagerService {
             );
             result.totalGoogleEvents = googleEvents.length;
 
-            this.logger.log(`Found ${result.totalTempraEvents} Tempra events and ${result.totalGoogleEvents} Google events`);
+            this.logger.log(`Found ${result.totalCalentoEvents} Calento events and ${result.totalGoogleEvents} Google events`);
 
-            const conflicts = this.detectConflicts(tempraEvents, googleEvents);
+            const conflicts = this.detectConflicts(calendoEvents, googleEvents);
             result.conflicts = conflicts;
 
             for (const conflict of conflicts) {
@@ -57,11 +57,11 @@ export class CalendarSyncManagerService {
             }
 
             switch (strategy) {
-                case SyncStrategy.MERGE_PREFER_TEMPRA:
-                    await this.mergePrefTempra(userId, conflicts, googleEvents);
+                case SyncStrategy.MERGE_PREFER_CALENTO:
+                    await this.mergePrefCalento(userId, conflicts, googleEvents);
                     break;
                 case SyncStrategy.MERGE_PREFER_GOOGLE:
-                    await this.mergePreferGoogle(userId, conflicts, tempraEvents, googleEvents);
+                    await this.mergePreferGoogle(userId, conflicts, calendoEvents, googleEvents);
                     break;
                 case SyncStrategy.KEEP_BOTH:
                     await this.keepBothEvents(userId, googleEvents);
@@ -120,38 +120,38 @@ export class CalendarSyncManagerService {
         }
     }
 
-    private detectConflicts(tempraEvents: any[], googleEvents: any[]): SyncConflict[] {
+    private detectConflicts(calendoEvents: any[], googleEvents: any[]): SyncConflict[] {
         const conflicts: SyncConflict[] = [];
 
-        for (const tempraEvent of tempraEvents) {
+        for (const calendoEvent of calendoEvents) {
             for (const googleEvent of googleEvents) {
-                if (tempraEvent.google_event_id === googleEvent.id) {
+                if (calendoEvent.google_event_id === googleEvent.id) {
                     continue;
                 }
 
-                const tempraStart = new Date(tempraEvent.start_time);
-                const tempraEnd = new Date(tempraEvent.end_time);
+                const calendoStart = new Date(calendoEvent.start_time);
+                const calendoEnd = new Date(calendoEvent.end_time);
                 const googleStart = googleEvent.start?.dateTime ? new Date(googleEvent.start.dateTime) : null;
                 const googleEnd = googleEvent.end?.dateTime ? new Date(googleEvent.end.dateTime) : null;
 
                 if (!googleStart || !googleEnd) continue;
 
                 const hasOverlap = (
-                    (tempraStart <= googleEnd && tempraEnd >= googleStart) ||
-                    (googleStart <= tempraEnd && googleEnd >= tempraStart)
+                    (calendoStart <= googleEnd && calendoEnd >= googleStart) ||
+                    (googleStart <= calendoEnd && googleEnd >= calendoStart)
                 );
 
                 const isSimilar = (
-                    tempraEvent.title.toLowerCase() === (googleEvent.summary || '').toLowerCase() ||
-                    (tempraEvent.location && tempraEvent.location === googleEvent.location)
+                    calendoEvent.title.toLowerCase() === (googleEvent.summary || '').toLowerCase() ||
+                    (calendoEvent.location && calendoEvent.location === googleEvent.location)
                 );
 
                 if (hasOverlap && isSimilar) {
                     conflicts.push({
-                        tempraEventId: tempraEvent.id,
+                        calendoEventId: calendoEvent.id,
                         googleEventId: googleEvent.id,
                         reason: ConflictReason.DUPLICATE,
-                        tempraEvent,
+                        calendoEvent,
                         googleEvent
                     });
                 }
@@ -162,36 +162,36 @@ export class CalendarSyncManagerService {
     }
 
 
-    private async mergePrefTempra(userId: string, conflicts: SyncConflict[], googleEvents: any[]): Promise<void> {
-        this.logger.log(`Merging with TEMPRA preference for user ${userId}`);
+    private async mergePrefCalento(userId: string, conflicts: SyncConflict[], googleEvents: any[]): Promise<void> {
+        this.logger.log(`Merging with CALENTO preference for user ${userId}`);
 
         for (const conflict of conflicts) {
             try {
-                if (conflict.tempraEvent && conflict.googleEventId) {
+                if (conflict.calendoEvent && conflict.googleEventId) {
                     await this.googleCalendarService.updateEvent(
                         userId,
                         'primary',
                         conflict.googleEventId,
-                        EventMappers.tempraEventToGoogleInput(conflict.tempraEvent)
+                        EventMappers.tempraEventToGoogleInput(conflict.calendoEvent)
                     );
 
-                    await this.saveEventMapping(conflict.tempraEventId!, conflict.googleEventId);
+                    await this.saveEventMapping(conflict.calendoEventId!, conflict.googleEventId);
                 }
             } catch (error) {
-                this.logger.error(`Failed to merge conflict for event ${conflict.tempraEventId}:`, error);
+                this.logger.error(`Failed to merge conflict for event ${conflict.calendoEventId}:`, error);
             }
         }
     }
 
-    private async mergePreferGoogle(userId: string, conflicts: SyncConflict[], tempraEvents: any[], googleEvents: any[]): Promise<void> {
+    private async mergePreferGoogle(userId: string, conflicts: SyncConflict[], calendoEvents: any[], googleEvents: any[]): Promise<void> {
         this.logger.log(`Merging with GOOGLE preference for user ${userId}`);
 
         for (const conflict of conflicts) {
             try {
-                if (conflict.googleEvent && conflict.tempraEventId) {
+                if (conflict.googleEvent && conflict.calendoEventId) {
                     const eventDto = EventMappers.googleEventToDto(conflict.googleEvent);
-                    await this.eventRepository.updateEvent(conflict.tempraEventId, eventDto, userId);
-                    await this.saveEventMapping(conflict.tempraEventId, conflict.googleEvent.id!);
+                    await this.eventRepository.updateEvent(conflict.calendoEventId, eventDto, userId);
+                    await this.saveEventMapping(conflict.calendoEventId, conflict.googleEvent.id!);
                 }
             } catch (error) {
                 this.logger.error(`Failed to merge conflict for event ${conflict.googleEventId}:`, error);
@@ -200,7 +200,7 @@ export class CalendarSyncManagerService {
     }
 
     private async keepBothEvents(userId: string, googleEvents: any[]): Promise<void> {
-        this.logger.log(`Keeping both Tempra and Google events for user ${userId}`);
+        this.logger.log(`Keeping both Calento and Google events for user ${userId}`);
 
         for (const googleEvent of googleEvents) {
             try {
@@ -222,16 +222,16 @@ export class CalendarSyncManagerService {
         }
     }
 
-    private async saveEventMapping(tempraEventId: string, googleEventId: string): Promise<void> {
+    private async saveEventMapping(calendoEventId: string, googleEventId: string): Promise<void> {
         const query = `
             UPDATE events 
             SET google_event_id = $1, updated_at = NOW()
             WHERE id = $2
         `;
-        await this.databaseService.query(query, [googleEventId, tempraEventId]);
+        await this.databaseService.query(query, [googleEventId, calendoEventId]);
     }
 
-    private async getTempraEvents(userId: string): Promise<any[]> {
+    private async getCalentoEvents(userId: string): Promise<any[]> {
         const query = `
             SELECT * FROM events 
             WHERE user_id = $1 
@@ -261,12 +261,12 @@ export class CalendarSyncManagerService {
         let query = `
             SELECT 
                 id,
-                tempra_event_id,
+                calendo_event_id,
                 google_event_id,
                 conflict_reason as reason,
                 resolution,
                 resolved,
-                tempra_event_data,
+                calendo_event_data,
                 google_event_data,
                 created_at,
                 resolved_at
@@ -287,10 +287,10 @@ export class CalendarSyncManagerService {
             const result = await this.databaseService.query(query, params);
             
             return result.rows.map(row => ({
-                tempraEventId: row.tempra_event_id,
+                calendoEventId: row.calendo_event_id,
                 googleEventId: row.google_event_id,
                 reason: row.reason as ConflictReason,
-                tempraEvent: row.tempra_event_data,
+                calendoEvent: row.calendo_event_data,
                 googleEvent: row.google_event_data,
                 resolution: row.resolution,
                 resolved: row.resolved,
@@ -309,11 +309,11 @@ export class CalendarSyncManagerService {
         const query = `
             INSERT INTO event_conflicts (
                 user_id, 
-                tempra_event_id, 
+                calendo_event_id, 
                 google_event_id, 
                 conflict_reason,
                 resolution,
-                tempra_event_data,
+                calendo_event_data,
                 google_event_data,
                 created_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
@@ -322,11 +322,11 @@ export class CalendarSyncManagerService {
         try {
             await this.databaseService.query(query, [
                 conflict.userId,
-                conflict.tempraEventId || null,
+                conflict.calendoEventId || null,
                 conflict.googleEventId || null,
                 conflict.reason,
                 conflict.resolution || null,
-                JSON.stringify(conflict.tempraEvent || {}),
+                JSON.stringify(conflict.calendoEvent || {}),
                 JSON.stringify(conflict.googleEvent || {})
             ]);
         } catch (error) {

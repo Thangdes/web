@@ -1,5 +1,5 @@
 export enum SyncStrategy {
-    MERGE_PREFER_TEMPRA = 'merge_prefer_tempra',
+    MERGE_PREFER_CALENTO = 'merge_prefer_calento',
     MERGE_PREFER_GOOGLE = 'merge_prefer_google',
     KEEP_BOTH = 'keep_both',
 }
@@ -11,7 +11,7 @@ export enum ConflictReason {
 }
 
 export enum ConflictResolution {
-    PREFER_TEMPRA = 'prefer_tempra',
+    PREFER_CALENTO = 'prefer_calento',
     PREFER_GOOGLE = 'prefer_google',
     KEEP_BOTH = 'keep_both',
     MANUAL_MERGE = 'manual_merge',
@@ -20,10 +20,10 @@ export enum ConflictResolution {
 }
 
 export interface SyncConflict {
-    tempraEventId?: string;
+    calendoEventId?: string;
     googleEventId?: string;
     reason: ConflictReason;
-    tempraEvent?: any;
+    calendoEvent?: any;
     googleEvent?: any;
     resolution?: string;
     resolved?: boolean;
@@ -33,7 +33,7 @@ export interface SyncConflict {
 
 export interface InitialSyncResult {
     totalGoogleEvents: number;
-    totalTempraEvents: number;
+    totalCalentoEvents: number;
     imported: number;
     conflicts: SyncConflict[];
     errors: string[];

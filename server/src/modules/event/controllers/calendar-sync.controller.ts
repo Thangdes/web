@@ -6,7 +6,7 @@ import { CalendarValidationService, CalendarConnectionStatus } from '../../../co
 import { SyncStrategy, InitialSyncResult, SyncConflict } from '../types/sync.types';
 
 class InitialSyncDto {
-    strategy?: SyncStrategy = SyncStrategy.MERGE_PREFER_TEMPRA;
+    strategy?: SyncStrategy = SyncStrategy.MERGE_PREFER_CALENTO;
 }
 
 class SetSyncEnabledDto {
@@ -30,15 +30,15 @@ export class CalendarSyncController {
         summary: 'Thực hiện initial sync với Google Calendar',
         description: `
             Khi user lần đầu connect với Google Calendar, endpoint này sẽ:
-            1. Lấy tất cả events từ cả Tempra và Google Calendar
+            1. Lấy tất cả events từ cả Calento và Google Calendar
             2. Phát hiện conflicts (events trùng lặp hoặc overlap)
             3. Xử lý conflicts theo strategy được chọn:
-               - MERGE_PREFER_TEMPRA: Giữ events của Tempra, update lên Google
-               - MERGE_PREFER_GOOGLE: Giữ events của Google, update Tempra
+               - MERGE_PREFER_CALENTO: Giữ events của Calento, update lên Google
+               - MERGE_PREFER_GOOGLE: Giữ events của Google, update Calento
                - KEEP_BOTH: Giữ cả 2, import tất cả từ Google
             4. Import các events không conflict từ Google
             
-            Recommended: MERGE_PREFER_TEMPRA (default)
+            Recommended: MERGE_PREFER_CALENTO (default)
         `
     })
     @ApiBody({ 
@@ -46,8 +46,8 @@ export class CalendarSyncController {
         description: 'Strategy để xử lý conflicts',
         examples: {
             default: {
-                summary: 'Ưu tiên Tempra (recommended)',
-                value: { strategy: 'merge_prefer_tempra' }
+                summary: 'Ưu tiên Calento (recommended)',
+                value: { strategy: 'merge_prefer_calento' }
             },
             google: {
                 summary: 'Ưu tiên Google',
@@ -65,14 +65,14 @@ export class CalendarSyncController {
         schema: {
             example: {
                 totalGoogleEvents: 15,
-                totalTempraEvents: 10,
+                totalCalentoEvents: 10,
                 imported: 12,
                 conflicts: [
                     {
-                        tempraEventId: 'abc-123',
+                        calendoEventId: 'abc-123',
                         googleEventId: 'google-xyz',
                         reason: 'duplicate',
-                        tempraEvent: { title: 'Meeting', start_time: '...' },
+                        calendoEvent: { title: 'Meeting', start_time: '...' },
                         googleEvent: { summary: 'Meeting', start: { dateTime: '...' } }
                     }
                 ],
@@ -87,7 +87,7 @@ export class CalendarSyncController {
         @Body() body: InitialSyncDto
     ): Promise<InitialSyncResult> {
         const userId = req.user.id;
-        const strategy = body.strategy || SyncStrategy.MERGE_PREFER_TEMPRA;
+        const strategy = body.strategy || SyncStrategy.MERGE_PREFER_CALENTO;
         
         return this.syncManager.performInitialSync(userId, strategy);
     }
@@ -123,7 +123,7 @@ export class CalendarSyncController {
             Enable hoặc disable automatic sync với Google Calendar.
             
             Khi DISABLE sync:
-            - Events ở Tempra calendar giữ nguyên
+            - Events ở Calento calendar giữ nguyên
             - Không sync events mới với Google
             - Không update events từ Google
             - User có thể enable lại bất cứ lúc nào
@@ -169,7 +169,7 @@ export class CalendarSyncController {
             Ngắt kết nối hoàn toàn với Google Calendar.
             
             Hệ thống sẽ:
-            1. Giữ nguyên TẤT CẢ events ở Tempra calendar
+            1. Giữ nguyên TẤT CẢ events ở Calento calendar
             2. Xóa mapping với Google Calendar (google_event_id)
             3. Đánh dấu connection là inactive
             4. Không thể sync cho đến khi reconnect
@@ -212,10 +212,10 @@ export class CalendarSyncController {
         schema: {
             example: [
                 {
-                    tempraEventId: 'abc-123',
+                    calendoEventId: 'abc-123',
                     googleEventId: 'google-xyz',
                     reason: 'duplicate',
-                    tempraEvent: {
+                    calendoEvent: {
                         id: 'abc-123',
                         title: 'Team Meeting',
                         start_time: '2024-01-15T10:00:00Z',
@@ -227,7 +227,7 @@ export class CalendarSyncController {
                         start: { dateTime: '2024-01-15T10:00:00Z' },
                         end: { dateTime: '2024-01-15T11:00:00Z' }
                     },
-                    resolution: 'merge_prefer_tempra',
+                    resolution: 'merge_prefer_calento',
                     resolved: false,
                     createdAt: '2024-01-15T08:00:00Z',
                     resolvedAt: null

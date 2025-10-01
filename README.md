@@ -1,6 +1,6 @@
-# Tempra
+# Calento.space
 
-A modern web application built with Node.js, PostgreSQL, and Redis.
+A smart Calendar Assistant built with Node.js, PostgreSQL, and Redis. Manage your schedules, sync with Google Calendar, and automate your time management effortlessly.
 
 ## 🚀 Quick Start
 
@@ -15,7 +15,7 @@ A modern web application built with Node.js, PostgreSQL, and Redis.
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd tempra
+cd calento.space
 ```
 
 2. Copy environment variables:
@@ -47,7 +47,7 @@ npm start
 ## 📁 Project Structure
 
 ```
-tempra/
+calento.space/
 ├── client/          # Frontend application
 ├── server/          # Backend API
 ├── provision/       # Docker configuration

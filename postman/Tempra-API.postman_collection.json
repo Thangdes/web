@@ -1,9 +1,9 @@
 {
   "info": {
-    "name": "Tempra API",
-    "description": "Comprehensive API test collection for Tempra - Modern scheduling platform with Google Calendar integration",
+    "name": "Calento.space API",
+    "description": "Comprehensive API test collection for Calento.space - Smart Calendar Assistant with Google Calendar integration",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "tempra-api-v1"
+    "_exporter_id": "calento-api-v1"
   },
   "auth": {
     "type": "bearer",
