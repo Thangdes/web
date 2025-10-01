@@ -306,3 +306,28 @@ export class EventConflictCheckDto {
     @IsOptional()
     exclude_event_id?: string;
 }
+
+export class RecurringEventsQueryDto {
+    @ApiProperty({
+        description: 'Start date for recurring event expansion in ISO 8601 format',
+        example: '2024-01-01T00:00:00Z'
+    })
+    @IsISO8601()
+    start_date: string;
+
+    @ApiProperty({
+        description: 'End date for recurring event expansion in ISO 8601 format',
+        example: '2024-01-31T23:59:59Z'
+    })
+    @IsISO8601()
+    @IsAfterStartTime('start_date', { message: 'End date must be after start date' })
+    end_date: string;
+
+    @ApiPropertyOptional({
+        description: 'Maximum number of occurrences to return per recurring event',
+        example: 100,
+        default: 100
+    })
+    @IsOptional()
+    max_occurrences?: number = 100;
+}

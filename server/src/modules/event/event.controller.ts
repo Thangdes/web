@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Query, HttpStatus, UseGuards } from "@nestjs/common";
 import { EventService } from "./event.service";
-import { CreateEventDto, EventResponseDto } from "./dto/events.dto";
+import { CreateEventDto, EventResponseDto, RecurringEventsQueryDto } from "./dto/events.dto";
 import { MessageService } from "../../common/message/message.service";
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiCookieAuth, ApiExtraModels } from "@nestjs/swagger";
 import { SuccessResponseDto, PaginatedResponseDto } from "../../common/dto/base-response.dto";
@@ -89,6 +89,84 @@ export class EventController {
             this.messageService.get('calendar.event_created'),
             event,
             HttpStatus.CREATED
+        );
+    }
+
+    @Get('recurring/expand')
+    @ApiOperation({ 
+        summary: '🔄 Expand recurring events',
+        description: 'Expand recurring events into individual occurrences within a specified date range using RRULE'
+    })
+    @ApiResponse({ 
+        status: 200, 
+        description: '✅ Recurring events expanded successfully with all occurrences in date range',
+        schema: {
+            example: {
+                success: true,
+                message: 'Recurring events retrieved successfully',
+                data: [
+                    {
+                        id: 'event-123_occurrence_0',
+                        original_event_id: 'event-123',
+                        occurrence_index: 0,
+                        title: 'Weekly Team Meeting',
+                        start_time: '2024-01-08T10:00:00Z',
+                        end_time: '2024-01-08T11:00:00Z',
+                        is_recurring_instance: true,
+                        recurrence_rule: 'FREQ=WEEKLY;BYDAY=MO'
+                    },
+                    {
+                        id: 'event-123_occurrence_1',
+                        original_event_id: 'event-123',
+                        occurrence_index: 1,
+                        title: 'Weekly Team Meeting',
+                        start_time: '2024-01-15T10:00:00Z',
+                        end_time: '2024-01-15T11:00:00Z',
+                        is_recurring_instance: true,
+                        recurrence_rule: 'FREQ=WEEKLY;BYDAY=MO'
+                    }
+                ],
+                meta: {
+                    page: 1,
+                    limit: 10,
+                    total: 4,
+                    totalPages: 1
+                }
+            }
+        }
+    })
+    @ApiResponse({ 
+        status: 400, 
+        description: '❌ Invalid date range or parameters',
+        schema: {
+            example: SwaggerExamples.Errors.ValidationError
+        }
+    })
+    @ApiResponse({ 
+        status: 401, 
+        description: '❌ Unauthorized - Invalid or expired token',
+        schema: {
+            example: SwaggerExamples.Errors.Unauthorized
+        }
+    })
+    async expandRecurringEvents(
+        @CurrentUserId() userId: string,
+        @Query() recurringQuery: RecurringEventsQueryDto,
+        @Query() paginationQuery: PaginationQueryDto
+    ): Promise<PaginatedResponseDto> {
+        const { start_date, end_date, max_occurrences = 100 } = recurringQuery;
+        const result = await this.eventService.expandRecurringEvents(
+            userId,
+            new Date(start_date),
+            new Date(end_date),
+            max_occurrences,
+            paginationQuery
+        );
+        
+        return new PaginatedResponseDto(
+            this.messageService.get('success.retrieved'),
+            result.data,
+            result.meta
         );
     }
 }

@@ -7,6 +7,7 @@ import { CreateEventDto } from './dto/events.dto';
 import { UserValidationService } from '../../common/services/user-validation.service';
 import { CalendarValidationService } from '../../common/services/calendar-validation.service';
 import { EventValidationService } from '../../common/services/event-validation.service';
+import { RecurringEventsService, ExpandedEvent } from '../../common/services/recurring-events.service';
 import { MessageService } from '../../common/message/message.service';
 import { EventCreationFailedException } from './exceptions/event.exceptions';
 import { UserOwnedRepository } from '../../common/repositories/base.repository';
@@ -19,7 +20,8 @@ export class EventRepository extends UserOwnedRepository<Event> {
         messageService: MessageService,
         private userValidationService: UserValidationService,
         private calendarValidationService: CalendarValidationService,
-        private eventValidationService: EventValidationService
+        private eventValidationService: EventValidationService,
+        private recurringEventsService: RecurringEventsService
     ) {
         super(databaseService, paginationService, messageService, 'events');
     }
@@ -171,8 +173,6 @@ export class EventRepository extends UserOwnedRepository<Event> {
     ): Promise<PaginatedResult<Event>> {
         await this.userValidationService.validateUserExists(userId);
         
-        // Find events that overlap with the date range
-        // Event overlaps if: event_start <= range_end AND event_end >= range_start
         const whereCondition = 'user_id = $1 AND start_time <= $3 AND end_time >= $2';
         const whereParams = [userId, startDate, endDate];
 
@@ -182,5 +182,98 @@ export class EventRepository extends UserOwnedRepository<Event> {
             this.logger.error('Failed to get events by user ID and date range:', error);
             throw new EventCreationFailedException(this.messageService.get('error.internal_server_error'));
         }
+    }
+    async searchEventsByDateRange(
+        userId: string, 
+        startDate: Date, 
+        endDate: Date, 
+        searchTerm: string, 
+        options: Partial<PaginationOptions>
+    ): Promise<PaginatedResult<Event>> {
+        await this.userValidationService.validateUserExists(userId);
+        
+        const searchPattern = `%${searchTerm}%`;
+        const whereCondition = `
+            user_id = $1 
+            AND start_time <= $4 
+            AND end_time >= $3 
+            AND (title ILIKE $2 OR description ILIKE $2)
+        `;
+        const whereParams = [userId, searchPattern, startDate, endDate];
+
+        try {
+            return await this.search(whereCondition, whereParams, options);
+        } catch (error) {
+            this.logger.error('Failed to search events by date range:', error);
+            throw new EventCreationFailedException(this.messageService.get('error.internal_server_error'));
+        }
+    }
+
+    async findRecurringEventsForExpansion(
+        userId: string,
+        startDate: Date,
+        endDate: Date
+    ): Promise<Event[]> {
+        await this.userValidationService.validateUserExists(userId);
+        
+        const query = `
+            SELECT * FROM ${this.tableName}
+            WHERE user_id = $1 
+                AND recurrence_rule IS NOT NULL 
+                AND recurrence_rule != ''
+                AND start_time <= $3
+            ORDER BY start_time ASC
+        `;
+
+        try {
+            const result = await this.databaseService.query(query, [userId, startDate, endDate]);
+            return result.rows;
+        } catch (error) {
+            this.logger.error('Failed to find recurring events for expansion:', error);
+            throw new EventCreationFailedException(this.messageService.get('error.internal_server_error'));
+        }
+    }
+
+    async expandRecurringEvents(
+        userId: string,
+        startDate: Date,
+        endDate: Date,
+        maxOccurrences: number,
+        options: Partial<PaginationOptions>
+    ): Promise<PaginatedResult<ExpandedEvent>> {
+        await this.userValidationService.validateUserExists(userId);
+
+        try {
+            const recurringEvents = await this.findRecurringEventsForExpansion(userId, startDate, endDate);
+            const expandedEvents = this.recurringEventsService.expandRecurringEvents(
+                recurringEvents,
+                startDate,
+                endDate,
+                maxOccurrences
+            );
+
+            return this.paginateExpandedEvents(expandedEvents, options);
+        } catch (error) {
+            this.logger.error('Failed to expand recurring events:', error);
+            throw new EventCreationFailedException(this.messageService.get('error.internal_server_error'));
+        }
+    }
+
+    private paginateExpandedEvents(
+        expandedEvents: ExpandedEvent[],
+        options: Partial<PaginationOptions>
+    ): PaginatedResult<ExpandedEvent> {
+        const validatedOptions = this.paginationService.validatePaginationOptions(options);
+        const { page, limit } = validatedOptions;
+        
+        const startIndex = (page - 1) * limit;
+        const paginatedItems = expandedEvents.slice(startIndex, startIndex + limit);
+
+        return this.paginationService.createPaginatedResult(
+            paginatedItems,
+            page,
+            limit,
+            expandedEvents.length
+        );
     }
 }

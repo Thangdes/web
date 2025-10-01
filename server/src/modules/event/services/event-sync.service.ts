@@ -5,6 +5,9 @@ import { GoogleAuthService } from '../../google/services/google-auth.service';
 import { CalendarValidationService } from '../../../common/services/calendar-validation.service';
 import { Event } from '../event';
 import { CreateEventDto } from '../dto/events.dto';
+import { SyncResult, SyncStatus } from '../types/sync.types';
+import { EventMappers } from '../utils/event-mappers';
+import { SyncChecker } from '../utils/sync-checker';
 
 @Injectable()
 export class EventSyncService {
@@ -14,7 +17,8 @@ export class EventSyncService {
         private readonly eventRepository: EventRepository,
         private readonly googleCalendarService: GoogleCalendarService,
         private readonly googleAuthService: GoogleAuthService,
-        private readonly calendarValidationService: CalendarValidationService
+        private readonly calendarValidationService: CalendarValidationService,
+        private readonly syncChecker: SyncChecker
     ) {}
 
     async createEventWithSync(
@@ -29,10 +33,10 @@ export class EventSyncService {
             return { event, syncedToGoogle: false };
         }
 
-        const isConnected = await this.calendarValidationService.isUserConnectedToCalendar(userId);
+        const { canSync, reason } = await this.syncChecker.checkSyncability(userId);
         
-        if (!isConnected) {
-            this.logger.log(`User ${userId} not connected to Google - event created locally only`);
+        if (!canSync) {
+            this.logger.log(`User ${userId} cannot sync: ${reason}`);
             return { event, syncedToGoogle: false };
         }
 
@@ -40,13 +44,7 @@ export class EventSyncService {
             const googleEvent = await this.googleCalendarService.createEvent(
                 userId,
                 'primary',
-                {
-                    summary: event.title,
-                    description: event.description,
-                    start: event.start_time,
-                    end: event.end_time,
-                    location: event.location
-                }
+                EventMappers.tempraEventToGoogleInput(event)
             );
 
             this.logger.log(`Synced event ${event.id} to Google Calendar: ${googleEvent.id}`);
@@ -71,9 +69,10 @@ export class EventSyncService {
         const event = await this.eventRepository.updateEvent(eventId, eventDto, userId);
         this.logger.log(`Updated local event ${eventId}`);
 
-        const isConnected = await this.calendarValidationService.isUserConnectedToCalendar(userId);
+        const { canSync, reason } = await this.syncChecker.checkSyncability(userId, true, googleEventId);
         
-        if (!isConnected || !googleEventId) {
+        if (!canSync) {
+            this.logger.log(`User ${userId} cannot sync update: ${reason}`);
             return { event, syncedToGoogle: false };
         }
 
@@ -81,14 +80,8 @@ export class EventSyncService {
             await this.googleCalendarService.updateEvent(
                 userId,
                 'primary',
-                googleEventId,
-                {
-                    summary: event.title,
-                    description: event.description,
-                    start: event.start_time,
-                    end: event.end_time,
-                    location: event.location
-                }
+                googleEventId!,
+                EventMappers.tempraEventToGoogleInput(event)
             );
 
             this.logger.log(`Synced update for event ${eventId} to Google`);
@@ -161,20 +154,11 @@ export class EventSyncService {
 
             for (const googleEvent of googleEvents) {
                 try {
-                    if (!googleEvent.start?.dateTime || !googleEvent.end?.dateTime) {
+                    if (!EventMappers.isValidGoogleEvent(googleEvent)) {
                         continue;
                     }
 
-                    const eventDto: CreateEventDto = {
-                        title: googleEvent.summary || 'Untitled Event',
-                        description: googleEvent.description ?? undefined,
-                        start_time: new Date(googleEvent.start.dateTime).toISOString(),
-                        end_time: new Date(googleEvent.end.dateTime).toISOString(),
-                        location: googleEvent.location ?? undefined,
-                        is_all_day: false,
-                        recurrence_rule: googleEvent.recurrence?.[0] ?? undefined
-                    };
-
+                    const eventDto = EventMappers.googleEventToDto(googleEvent);
                     await this.eventRepository.createEvent(eventDto, userId);
                     syncedCount++;
                 } catch (error) {
@@ -195,17 +179,14 @@ export class EventSyncService {
         return this.calendarValidationService.isUserConnectedToCalendar(userId);
     }
 
-    async getSyncStatus(userId: string): Promise<{
-        connectedToGoogle: boolean;
-        canSync: boolean;
-        lastSyncAt?: Date;
-    }> {
-        const connectedToGoogle = await this.calendarValidationService.isUserConnectedToCalendar(userId);
+    async getSyncStatus(userId: string): Promise<SyncStatus> {
+        const connectionStatus = await this.calendarValidationService.getConnectionStatus(userId);
 
         return {
-            connectedToGoogle,
-            canSync: connectedToGoogle,
-            lastSyncAt: undefined
+            connectedToGoogle: connectionStatus.isConnected,
+            isSyncEnabled: connectionStatus.isSyncEnabled,
+            canSync: connectionStatus.isConnected && connectionStatus.isSyncEnabled,
+            lastSyncAt: connectionStatus.lastSyncAt
         };
     }
 }
