@@ -13,37 +13,30 @@ export class CalendarValidationService {
     ) {}
 
     async validateCalendarExists(userId: string): Promise<void> {
-        // Check if user has Google Calendar connection
-        const calendarQuery = 'SELECT * FROM user_calendar_connections WHERE user_id = $1 AND provider = $2';
+        const calendarQuery = 'SELECT * FROM user_credentials WHERE user_id = $1 AND provider = $2';
         const calendarParams = [userId, 'google'];
 
         try {
             const calendarResult = await this.databaseService.query(calendarQuery, calendarParams);
             
             if (calendarResult.rows.length === 0) {
-                // Case 1: User not connected to Google Calendar
-                // For now, we'll allow event creation without Google Calendar sync
-                // In the future, this could redirect to Google Calendar connection flow
+                this.logger.log(`User ${userId} not connected to Google Calendar - allowing local event creation`);
                 return;
             }
 
-            // Case 2: User is connected to Google Calendar
             const connection = calendarResult.rows[0];
             
-            // Check if connection is still valid (not expired)
             if (connection.expires_at && new Date(connection.expires_at) < new Date()) {
-                throw new CalendarSyncException(this.messageService.get('calendar.sync_failed'));
+                this.logger.warn(`Google Calendar token expired for user ${userId} - auto-refresh will be attempted`);
+                return;
             }
 
-            // TODO: Future implementation - Check for sync conflicts
-            // await this.checkSyncConflicts(userId, connection);
+            this.logger.log(`User ${userId} has valid Google Calendar connection`);
             
         } catch (error) {
-            if (error.message === this.messageService.get('calendar.sync_failed')) {
+            if (error instanceof CalendarSyncException) {
                 throw error;
             }
-            // If calendar validation fails, we still allow event creation
-            // This ensures the system works even without Google Calendar integration
             this.logger.warn(`Calendar validation warning for user ${userId}: ${error.message}`);
         }
     }
@@ -75,7 +68,7 @@ export class CalendarValidationService {
     }
 
     async isUserConnectedToCalendar(userId: string): Promise<boolean> {
-        const query = 'SELECT 1 FROM user_calendar_connections WHERE user_id = $1 AND provider = $2 LIMIT 1';
+        const query = 'SELECT 1 FROM user_credentials WHERE user_id = $1 AND provider = $2 LIMIT 1';
         const params = [userId, 'google'];
 
         try {
@@ -87,13 +80,14 @@ export class CalendarValidationService {
     }
 
     async getCalendarConnection(userId: string): Promise<any> {
-        const query = 'SELECT * FROM user_calendar_connections WHERE user_id = $1 AND provider = $2';
+        const query = 'SELECT * FROM user_credentials WHERE user_id = $1 AND provider = $2';
         const params = [userId, 'google'];
 
         try {
             const result = await this.databaseService.query(query, params);
             return result.rows[0] || null;
         } catch (error) {
+            this.logger.error(`Failed to get calendar connection for user ${userId}:`, error);
             throw new Error(this.messageService.get('error.internal_server_error'));
         }
     }
