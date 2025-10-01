@@ -6,11 +6,11 @@ import { DepartmentsSection } from "@/components/layout/DepartmentsSection";
 import { ThirtyDaySection } from "@/components/layout/ThirtyDaySection";
 import { TestimonialSection } from "@/components/layout/TestimonialSection";
 import { GreenStatsSection } from "@/components/layout/GreenStatsSection";
-import { IntegrationsSection } from "@/components/layout/IntegrationsSection";
-import { PlatformIntegrationSection } from "@/components/layout/PlatformIntegrationSection";
 import { SecondTestimonialSection } from "@/components/layout/SecondTestimonialSection";
 import { EnterpriseSection } from "@/components/layout/EnterpriseSection";
 import { Footer } from "@/components/layout/Footer/Footer";
+import { IntegrationShowcaseSection } from "@/components/layout/IntegrationShowcaseSection";
+
 
 export default function Home() {
   return (
@@ -19,13 +19,15 @@ export default function Home() {
       <HeroSection />
       <FocusStatsSection />
       <ProductivitySection />
+      <SecondTestimonialSection />
       <DepartmentsSection />
       <ThirtyDaySection />
       <TestimonialSection />
       <GreenStatsSection />
-      <IntegrationsSection />
-      <PlatformIntegrationSection />
-      <SecondTestimonialSection />
+      <IntegrationShowcaseSection />
+
+
+
       <EnterpriseSection />
       <Footer />
     </main>
