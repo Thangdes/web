@@ -1,4 +1,4 @@
-export function FooterCTA() {
+export const FooterCTA: React.FC = () => {
     const features = [
         "100% free forever plan",
         "No credit card required",
@@ -32,4 +32,4 @@ export function FooterCTA() {
             </div>
         </div>
     );
-}
+};

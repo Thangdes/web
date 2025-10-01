@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-export function Header() {
+export const Header: React.FC = () => {
   return (
     <header className="w-full flex justify-between items-center px-10 py-6 bg-white border-b sticky top-0 z-50 shadow-sm">
       <div className="flex items-center gap-2">
@@ -21,8 +21,10 @@ export function Header() {
       <div className="flex items-center gap-6">
         <span className="text-gray-500 cursor-pointer">Contact Sales</span>
         <span className="text-gray-500 cursor-pointer">Log In</span>
-        <Button variant="default" size="lg" className="rounded-full px-6 py-2 bg-gray-900 text-white hover:bg-gray-800">Get Started</Button>
+        <Button variant="default" size="lg" className="rounded-full px-6 py-2 bg-gray-900 text-white hover:bg-gray-800">
+          Get Started
+        </Button>
       </div>
     </header>
   );
-}
+};

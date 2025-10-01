@@ -1,4 +1,4 @@
-export function FocusStatsSection() {
+export const FocusStatsSection: React.FC = () => {
   return (
     <section className="w-full py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="max-w-6xl mx-auto">
@@ -27,11 +27,9 @@ export function FocusStatsSection() {
           </div>
         </div>
 
-        {/* Trust indicators - thêm phần này để giống reclaim.ai */}
         <div className="mt-16 text-center">
           <p className="text-gray-500 text-sm mb-4">TRUSTED BY THOUSANDS OF FAST-MOVING TEAMS</p>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-            {/* Có thể thêm logo các công ty ở đây */}
             <div className="text-gray-400 font-semibold">Google</div>
             <div className="text-gray-400 font-semibold">Amazon</div>
             <div className="text-gray-400 font-semibold">Microsoft</div>
@@ -42,4 +40,4 @@ export function FocusStatsSection() {
       </div>
     </section>
   );
-}
+};

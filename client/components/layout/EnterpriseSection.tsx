@@ -1,6 +1,11 @@
+interface EnterpriseFeature {
+    icon: string;
+    title: string;
+    description: string;
+}
 
-export function EnterpriseSection() {
-    const enterpriseFeatures = [
+export const EnterpriseSection: React.FC = () => {
+    const enterpriseFeatures: EnterpriseFeature[] = [
         {
             icon: "https://cdn.prod.website-files.com/67859049c02d67b2cfcceebf/67859049c02d67b2cfccf834_soc2_02.svg",
             title: "SOC 2 Type II",
@@ -36,7 +41,6 @@ export function EnterpriseSection() {
     return (
         <section className="w-full py-20 px-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="max-w-6xl mx-auto">
-                {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-16 gap-6">
                     <h2 className="text-3xl md:text-5xl font-bold">
                         <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent animate-gradient">
@@ -52,7 +56,6 @@ export function EnterpriseSection() {
                     </a>
                 </div>
 
-                {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {enterpriseFeatures.map((feature, index) => (
                         <div
@@ -73,5 +76,4 @@ export function EnterpriseSection() {
             </div>
         </section>
     );
-}
-
+};

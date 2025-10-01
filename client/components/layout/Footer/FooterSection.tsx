@@ -4,7 +4,7 @@ interface FooterSectionProps {
     isWide?: boolean;
 }
 
-export function FooterSection({ title, links, isWide = false }: FooterSectionProps) {
+export const FooterSection: React.FC<FooterSectionProps> = ({ title, links, isWide = false }) => {
     return (
         <div className={isWide ? "col-span-2" : ""}>
             <h4 className="font-bold text-gray-900 text-lg mb-4">{title}</h4>
@@ -21,4 +21,4 @@ export function FooterSection({ title, links, isWide = false }: FooterSectionPro
             </div>
         </div>
     );
-}
+};

@@ -4,7 +4,7 @@ interface LandingCardProps {
     description: string;
 }
 
-export function LandingCard({ colorClass, title, description }: LandingCardProps) {
+export const LandingCard: React.FC<LandingCardProps> = ({ colorClass, title, description }) => {
     return (
         <div className={`rounded-2xl ${colorClass} p-4 px-2 flex flex-col items-center shadow-md w-44 min-w-[140px] mx-2`}>
             <div className="mb-2 w-full flex justify-center">
@@ -16,4 +16,4 @@ export function LandingCard({ colorClass, title, description }: LandingCardProps
             <div className="text-sm">{description}</div>
         </div>
     );
-}
+};

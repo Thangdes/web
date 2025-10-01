@@ -1,6 +1,12 @@
 import { LandingCard } from "./LandingCard";
 
-const cards = [
+interface CardData {
+  colorClass: string;
+  title: string;
+  description: string;
+}
+
+const cards: CardData[] = [
   { colorClass: "bg-blue-600 text-white", title: "Marketing", description: "Fast-track campaigns →" },
   { colorClass: "bg-green-500 text-white", title: "Engineering", description: "Get more coding done →" },
   { colorClass: "bg-blue-100 text-gray-900", title: "Product", description: "Ship product faster →" },
@@ -10,7 +16,7 @@ const cards = [
   { colorClass: "bg-blue-800 text-white", title: "EAs & Admin", description: "Optimize your work →" },
 ];
 
-export function LandingCardGrid() {
+export const LandingCardGrid: React.FC = () => {
   return (
     <section className="w-full py-16 px-4">
       <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-y-4 -mx-2">
@@ -20,4 +26,4 @@ export function LandingCardGrid() {
       </div>
     </section>
   );
-}
+};

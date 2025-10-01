@@ -1,4 +1,4 @@
-export function FooterBottom() {
+export const FooterBottom: React.FC = () => {
     const legalLinks = ["Terms", "Privacy", "Security", "Cookies"];
     const socialPlatforms = ["Twitter", "LinkedIn", "YouTube", "Instagram", "Facebook"];
 
@@ -40,4 +40,4 @@ export function FooterBottom() {
             </div>
         </div>
     );
-}
+};

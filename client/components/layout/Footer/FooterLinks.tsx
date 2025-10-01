@@ -1,6 +1,12 @@
 import { FooterSection } from './FooterSection';
 
-const footerSections = [
+interface FooterSectionData {
+    title: string;
+    links: string[];
+    isWide?: boolean;
+}
+
+const footerSections: FooterSectionData[] = [
     {
         title: "Products",
         links: [
@@ -53,7 +59,7 @@ const footerSections = [
     }
 ];
 
-export function FooterLinks() {
+export const FooterLinks: React.FC = () => {
     return (
         <div className="w-full bg-white py-16 px-4 border-t border-gray-200">
             <div className="max-w-7xl mx-auto">
@@ -93,4 +99,4 @@ export function FooterLinks() {
             </div>
         </div>
     );
-}
+};
