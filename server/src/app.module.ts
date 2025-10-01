@@ -6,6 +6,7 @@ import { UsersModule } from './modules/users/users.module';
 import { CommonModule } from './common/common.module';
 import { HealthModule } from './modules/health/health.module';
 import { EventModule } from './modules/event/event.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
 
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './modules/auth/auth.module';
@@ -24,6 +25,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     HealthModule,
     UsersModule,
     EventModule,
+    CalendarModule,
     AuthModule,
   ],
   providers: [
