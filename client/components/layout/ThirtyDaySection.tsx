@@ -49,9 +49,9 @@ export const ThirtyDaySection: React.FC = () => {
                         <div className="bg-white rounded-2xl p-8 shadow-lg">
                             <h3 className="text-lg font-semibold mb-4">Today</h3>
                             <ul className="space-y-3 text-gray-700">
-                                <li>✔ Focus Time is instantly protected</li>
-                                <li>✔ AI starts flexibly defending your priorities</li>
-                                <li>✔ Productivity trends are discovered via analytics</li>
+                                <li><span className="text-green-500">✔</span> Focus Time is instantly protected</li>
+                                <li><span className="text-green-500">✔</span> AI starts flexibly defending your priorities</li>
+                                <li><span className="text-green-500">✔</span> Productivity trends are discovered via analytics</li>
                             </ul>
                         </div>
 
@@ -59,9 +59,9 @@ export const ThirtyDaySection: React.FC = () => {
                         <div className="bg-white rounded-2xl p-8 shadow-lg">
                             <h3 className="text-lg font-semibold mb-4">Day 7</h3>
                             <ul className="space-y-3 text-gray-700">
-                                <li>✔ AI optimizes 20% more long "deep work" sessions</li>
-                                <li>✔ Meetings automatically adjust to an ideal time</li>
-                                <li>✔ Fragmented time blocks reduce by 50%</li>
+                                <li><span className="text-green-500">✔</span> AI optimizes 20% more long "deep work" sessions</li>
+                                <li><span className="text-green-500">✔</span> Meetings automatically adjust to an ideal time</li>
+                                <li><span className="text-green-500">✔</span> Fragmented time blocks reduce by 50%</li>
                             </ul>
                         </div>
 
@@ -69,9 +69,9 @@ export const ThirtyDaySection: React.FC = () => {
                         <div className="bg-white rounded-2xl p-8 shadow-lg">
                             <h3 className="text-lg font-normal mb-4">Day 30</h3>
                             <ul className="space-y-3 text-gray-700">
-                                <li>✔ Focus Time increases by 50%</li>
-                                <li>✔ Meeting load reduces by 15%</li>
-                                <li>✔ Work efficiency improves by 40%</li>
+                                <li><span className="text-green-500">✔</span> Focus Time increases by 50%</li>
+                                <li><span className="text-green-500">✔</span> Meeting load reduces by 15%</li>
+                                <li><span className="text-green-500">✔</span> Work efficiency improves by 40%</li>
                             </ul>
                         </div>
                     </div>
