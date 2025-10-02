@@ -25,9 +25,6 @@ export default function Home() {
       <TestimonialSection />
       <GreenStatsSection />
       <IntegrationShowcaseSection />
-
-
-
       <EnterpriseSection />
       <Footer />
     </main>
