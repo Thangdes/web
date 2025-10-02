@@ -1,3 +1,5 @@
+import React from "react";
+
 interface DepartmentCard {
     title: string;
     description: string;
@@ -12,7 +14,7 @@ export const DepartmentsSection: React.FC = () => {
             title: "Marketing",
             description: "Fast-track campaigns →",
             icon: "https://cdn.prod.website-files.com/67859049c02d67b2cfcceebf/67859049c02d67b2cfccf61e_marketing_180.svg",
-            colorClass: "bg-purple-600 text-white",
+            colorClass: "bg-gray-800 text-white",
             href: "/teams/marketing"
         },
         {
@@ -26,7 +28,7 @@ export const DepartmentsSection: React.FC = () => {
             title: "Product",
             description: "Ship product faster →",
             icon: "https://cdn.prod.website-files.com/67859049c02d67b2cfcceebf/67859049c02d67b2cfccf621_product_180.svg",
-            colorClass: "bg-blue-100 text-gray-900",
+            colorClass: "bg-blue-200 text-gray-900",
             href: "/teams/product"
         },
         {
@@ -60,54 +62,61 @@ export const DepartmentsSection: React.FC = () => {
     ];
 
     return (
-        <section className="w-full py-20 px-4 bg-white">
-            <div className="max-w-7xl mx-auto">
+        <section className="w-full py-20 pl-4 bg-white">
+            <div className="max-w-7xl ml-0">
+
                 {/* Header */}
-                <div className="text-center mb-16">
+                <div className="text-left mb-8">
                     <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
                         Get templates &amp; recommendations for your specialty
                     </h2>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-base text-gray-600 max-w-2xl whitespace-nowrap">
                         Access hundreds of templates and personalized focus time targets for your every role type.
                     </p>
                 </div>
 
-                {/* Desktop Grid */}
-                <div className="hidden lg:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {/* Desktop Grid: 5 cột */}
+                <div
+                    className="hidden lg:grid gap-x-6 gap-y-6 justify-start"
+                    style={{ gridTemplateColumns: "repeat(5, 200px)" }}
+                >
                     {departments.map((dept, index) => (
                         <a
                             key={index}
                             href={dept.href}
-                            className={`${dept.colorClass} rounded-2xl p-8 text-center hover:shadow-lg transition-all duration-300 hover:scale-105`}
+                            className={`${dept.colorClass} rounded-2xl p-5 flex flex-col justify-center items-center text-center shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 w-[200px] h-64`}
                         >
                             <img
                                 src={dept.icon}
                                 alt={dept.title}
-                                className="w-16 h-16 mx-auto mb-4"
+                                className="w-36 h-auto mb-4 object-contain"
                                 loading="lazy"
                             />
-                            <h3 className="text-xl font-bold mb-2">{dept.title}</h3>
-                            <p className="text-lg opacity-90">{dept.description}</p>
+                            <h3 className="text-xl font-bold mb-2 leading-tight whitespace-nowrap">{dept.title}</h3>
+                            <p className="text-base opacity-90 leading-tight whitespace-nowrap">{dept.description}</p>
                         </a>
                     ))}
                 </div>
 
-                {/* Mobile Grid */}
-                <div className="lg:hidden grid grid-cols-2 gap-4">
+                {/* Mobile Grid: 2 cột */}
+                <div
+                    className="lg:hidden grid gap-x-3 gap-y-4 justify-start"
+                    style={{ gridTemplateColumns: "repeat(2, 170px)" }}
+                >
                     {departments.map((dept, index) => (
                         <a
                             key={index}
                             href={dept.href}
-                            className={`${dept.colorClass} rounded-2xl p-6 text-center hover:shadow-lg transition-all duration-300`}
+                            className={`${dept.colorClass} rounded-2xl p-4 flex flex-col justify-center items-center text-center shadow-md hover:shadow-xl transition-all duration-300 w-[170px] h-44`}
                         >
                             <img
                                 src={dept.icon}
                                 alt={dept.title}
-                                className="w-12 h-12 mx-auto mb-3"
+                                className="w-24 h-auto mb-3 object-contain"
                                 loading="lazy"
                             />
-                            <h3 className="text-lg font-bold mb-1">{dept.title}</h3>
-                            <p className="text-sm opacity-90">{dept.description}</p>
+                            <h3 className="text-lg font-bold mb-1 leading-tight whitespace-nowrap">{dept.title}</h3>
+                            <p className="text-sm opacity-90 leading-tight whitespace-nowrap">{dept.description}</p>
                         </a>
                     ))}
                 </div>
